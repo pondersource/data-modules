@@ -1,11 +1,15 @@
 import {
     ThingPersisted,
+    Thing,
     addNamedNode,
     addStringNoLocale,
     addUrl,
     createSolidDataset,
     createThing,
     getLiteral,
+    getStringNoLocaleAll,
+    getUrlAll,
+    removeAll,
     getNamedNode,
     getPodUrlAll,
     getSolidDataset,
@@ -38,6 +42,7 @@ import { isValidUrl, merge } from "../utils";
 export type ICreateBookmark = {
     title: string;
     topic?: string;
+    topics?: string[];
     link: string;
     creator?: string;
 };
@@ -49,6 +54,7 @@ export type ICreateBookmark = {
 export type IUpdateBookmark = {
     title: string;
     topic?: string;
+    topics?: string[];
     link: string;
     creator?: string;
 };
@@ -251,7 +257,7 @@ export class Bookmark {
         webId: string,
         defaultPrivateBookmarkDocUrl?: string,
     ): Promise<boolean> {
-        const { title, link, creator, topic } = payload;
+        const { title, link, creator, topic, topics } = payload;
 
         if (!isValidUrl(link)) throw new Error("link is not a valid URL");
         if (creator && !isValidUrl(creator))
@@ -280,18 +286,7 @@ export class Bookmark {
                 namedNode(creator)
             );
 
-        if (topic && isValidUrl(topic))
-            newBookmarkThing = addNamedNode(
-                newBookmarkThing,
-                BOOKMARK.hasTopic,
-                namedNode(topic)
-            );
-        if (topic && !isValidUrl(topic))
-            newBookmarkThing = addStringNoLocale(
-                newBookmarkThing,
-                BOOKMARK.hasTopic,
-                topic
-            );
+        newBookmarkThing = this.addTopics(newBookmarkThing, topics ?? (topic ? [topic] : []));
 
         newBookmarkThing = addStringNoLocale(
             newBookmarkThing,
@@ -334,7 +329,7 @@ export class Bookmark {
         let thing = getThing(ds, url);
 
         if (thing) {
-            const { title, link, creator, topic } = payload;
+            const { title, link, creator, topic, topics } = payload;
 
             if (!isValidUrl(link)) throw new Error("link is not a valid URL");
             if (creator && !isValidUrl(creator))
@@ -345,10 +340,10 @@ export class Bookmark {
             if (creator)
                 thing = setNamedNode(thing, DCTERMS.creator, namedNode(creator));
 
-            if (topic && isValidUrl(topic))
-                thing = setNamedNode(thing, BOOKMARK.hasTopic, namedNode(topic));
-            if (topic && !isValidUrl(topic))
-                thing = setStringNoLocale(thing, BOOKMARK.hasTopic, topic);
+            const replacementTopics = topics ?? (topic ? [topic] : undefined);
+            if (replacementTopics) {
+                thing = this.addTopics(removeAll(thing, BOOKMARK.hasTopic), replacementTopics);
+            }
 
             thing = setStringNoLocale(thing, __DC_UPDATED, new Date().toISOString());
 
@@ -372,7 +367,11 @@ export class Bookmark {
         const url = thing.url;
         const title = this.mapTitle(thing);
         const link = this.mapLink(thing);
-        const topic = this.mapTopic(thing);
+        const topics = [
+            ...getUrlAll(thing, BOOKMARK.hasTopic),
+            ...getStringNoLocaleAll(thing, BOOKMARK.hasTopic),
+        ];
+        const [topic] = topics;
         const created = this.mapCreated(thing);
         const updated = this.mapUpdated(thing);
         const creator = this.mapCreator(thing);
@@ -381,7 +380,7 @@ export class Bookmark {
             url,
             title,
             link,
-            ...(topic && { topic }),
+            ...(topics.length && { topic, topics }),
             ...(created && { created }),
             ...(updated && { updated }),
             ...(creator && { creator }),
@@ -475,7 +474,12 @@ export class Bookmark {
      * @returns The topic as a string, if available
      * @internal
      */
-    private static mapTopic(thing: ThingPersisted): string | undefined {
-        return getNamedNode(thing, BOOKMARK.hasTopic)?.value;
+    private static addTopics<T extends Thing>(thing: T, topics: string[]): T {
+        for (const topic of topics) {
+            thing = isValidUrl(topic)
+                ? addUrl(thing, BOOKMARK.hasTopic, topic)
+                : addStringNoLocale(thing, BOOKMARK.hasTopic, topic);
+        }
+        return thing;
     }
 }

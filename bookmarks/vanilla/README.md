@@ -152,3 +152,21 @@ it checkes if typeIndex has a `solid:instance` or `solid:instanceContainer` regi
 
 see [Solid Typeindex Support](https://github.com/pondersource/solid-typeindex-support) for more information on typeindex support
 
+
+
+## Interoperability with Webmarks
+
+[Webmarks](https://github.com/pondersource/webmarks) uses the remoteStorage
+bookmarks module and writes archive bookmarks under `/bookmarks/archive/`.
+The [PDS Interop bookmark convention](https://pdsinterop.org/conventions/bookmark/)
+documents both forms. Map remoteStorage `url` to Solid `link` (`bookmark:recalls`),
+`title` to `title`, and plain `tags` to `topics` (`bookmark:hasTopic` literals).
+The module also reads and writes topic IRIs. Topics are an unordered RDF set.
+The older `topic` field remains available for single-topic callers. An
+explicit `topics: []` clears topics on update, and omitting both fields
+preserves existing topics.
+
+The bookmark's remoteStorage key and Solid resource IRI are storage-specific
+identifiers. Keep them in the respective adapters. Keep private bookmarks
+in a destination whose access controls you have verified. Topic mapping
+does not copy permissions or other archive metadata.

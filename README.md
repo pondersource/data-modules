@@ -18,7 +18,8 @@ Data types for which we will produce Solid Data Modules:
 * [chats](./chats)
 * [contacts](./contacts)
 * [profile](./profile) (stub)
-* [tasks](./tasks) (coming soon)
+* [tasks](./tasks/vanilla)
+* [movies](./movies/vanilla)
 
 ## Paradigms covered
 The "vanilla" version of each of these data modules will be usable in combination with just an
