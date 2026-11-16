@@ -57,7 +57,10 @@ describe("Bookmark", () => {
     it("the getAll method should get all bookmarks", async () => {
         const defaultBookmarksDocUrl = ["https://fake-pod.net/path/to/bookmark.ttl"];
 
-        const expected: IBookmark[] = allBookmarksMock
+        const expected: IBookmark[] = allBookmarksMock.map(bookmark => {
+            const topic = bookmark.topic ?? (bookmark.title === "sdf" ? "sdfg" : undefined);
+            return topic ? { ...bookmark, topic, topics: [topic] } : bookmark;
+        });
 
         const responseObject: any = {
             status: 200,
@@ -263,7 +266,8 @@ describe("Bookmark", () => {
             url: 'https://fake-pod.net/path/to/bookmark-formats.ttl#three',
             title: 'three',
             link: 'http://example.com',
-            topic: 'http://wikipedia.org/sdfg'
+            topic: 'http://wikipedia.org/sdfg',
+            topics: ['http://wikipedia.org/sdfg'],
         }
 
         const responseObject: any = {
@@ -291,6 +295,8 @@ describe("Bookmark", () => {
             url: 'https://fake-pod.ne/bookmarks/b93d9944-d54d-42f6-a39b-6ea3f9217763',
             title: 'sdf',
             link: 'http://example.com',
+            topic: 'sdfg',
+            topics: ['sdfg'],
             created: '2023-11-21T12:50:32.051Z',
             updated: '2023-11-21T12:50:32.051Z'
         }
