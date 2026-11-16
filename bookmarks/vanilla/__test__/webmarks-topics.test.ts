@@ -27,7 +27,7 @@ test("writes two replacement tags to the Solid document", async () => {
         if (init?.method === "PATCH")
             return new Response(null, { status: 204 });
 
-        return new Response(`
+        const response = new Response(`
             @prefix bk: <http://www.w3.org/2002/01/bookmark#> .
             @prefix dct: <http://purl.org/dc/terms/> .
             <${document}#it> a bk:Bookmark ;
@@ -35,6 +35,8 @@ test("writes two replacement tags to the Solid document", async () => {
                 dct:title "Personal data" ;
                 bk:hasTopic <https://example.org/old-topic> .
         `, { headers: { "Content-Type": "text/turtle" } });
+        Object.defineProperty(response, "url", { value: document });
+        return response;
     });
 
     const bookmark = await Bookmark.update(document + "#it", {
