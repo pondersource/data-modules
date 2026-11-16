@@ -30,7 +30,7 @@ export function parseRecipes(turtle, documentUrl) {
                 const [position] = literals(graph, term, 'position');
                 return text === undefined ? [] : [{
                     text,
-                    position: /^\\d+$/.test(position ?? '') ? Number(position) : undefined,
+                    position: /^[0-9]+$/.test(position ?? '') ? Number(position) : undefined,
                 }];
             })
             .sort((left, right) => (left.position ?? Infinity) - (right.position ?? Infinity))
