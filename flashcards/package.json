@@ -1,0 +1,19 @@
+{
+  "name": "@solid-data-modules/flashcards",
+  "version": "0.1.0",
+  "description": "Versioned RDF vocabulary and SHACL shapes for Solid Memo decks and cards",
+  "license": "MIT",
+  "files": [
+    "vocab",
+    "shapes"
+  ],
+  "exports": {
+    "./vocab/*.ttl": "./vocab/*.ttl",
+    "./shapes/*.ttl": "./shapes/*.ttl"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pondersource/data-modules.git",
+    "directory": "flashcards"
+  }
+}
