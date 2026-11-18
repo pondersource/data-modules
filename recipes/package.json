@@ -1,0 +1,13 @@
+{
+  "name": "solid-data-module-recipes",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": "./index.js",
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "n3": "1.26.0"
+  }
+}
