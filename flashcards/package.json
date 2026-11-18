@@ -15,5 +15,12 @@
     "type": "git",
     "url": "git+https://github.com/pondersource/data-modules.git",
     "directory": "flashcards"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "devDependencies": {
+    "n3": "2.13.12",
+    "rdf-validate-shacl": "0.6.5"
   }
 }
