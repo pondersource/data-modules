@@ -47,3 +47,18 @@ console.log(commentUri);
 
 This will result in an issue and a comment being created in that tracker:
 ![screenshot](https://github.com/user-attachments/assets/8d0a1aef-94c8-4c41-848d-d21edfe5f116)
+
+### SolidFocus / Schema.org task reader
+
+`parseSchemaTasks(expandedJsonLd)` recognises both Schema.org Action and iCalendar Vtodo, including dual-typed resources with either type first. It returns the resource URI, name, description, priority, due date, completion date and action-status IRI. The name uses `schema:name`, then `ical:summary`, then the legacy description-only representation. Completion follows the presence of a valid `ical:completed` date, matching SolidFocus's `completed` getter; the separate action-status IRI is retained rather than silently reconciled.
+
+Implementation references: [SolidFocus Task.schema.ts](https://github.com/NoelDeMartin/solid-focus/blob/53e6fddb0fec1e8cc9373b0106b138c99ae444a0/src/models/Task.schema.ts) and [Task.ts](https://github.com/NoelDeMartin/solid-focus/blob/53e6fddb0fec1e8cc9373b0106b138c99ae444a0/src/models/Task.ts). Its before-save hook sets CompletedActionStatus or PotentialActionStatus from completedAt. Priority, due dates, description and both title predicates must survive any eventual writer migration.
+
+This is a **read-only mapping** within the existing tasks module. It does not claim SolidFocus has been forked, deployed or migrated. Workspaces, lists, history and writes still require coverage. The existing issue/comment writers target SolidOS trackers, not SolidFocus's schema. Do not use them as a drop-in Action writer.
+
+Input must be expanded JSON-LD (array or `@graph` wrapper); this function does not resolve JSON-LD contexts. Import the built schema-tasks.js directly for a pure reader. The main module's UUID generation now uses Web Crypto, removing its static Node-only crypto dependency.
+
+```sh
+npx tsc -p tsconfig.json
+node --test tests/schema-tasks.test.mjs
+```
