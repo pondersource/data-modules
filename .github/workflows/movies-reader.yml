@@ -1,0 +1,21 @@
+name: Movies reader
+on:
+  pull_request:
+  push:
+    branches: [movies-reader-compatibility]
+permissions:
+  contents: read
+jobs:
+  movies:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: movies/vanilla
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts --no-audit --no-fund --no-package-lock
+      - run: npx tsc -p tsconfig.json
+      - run: node --test tests/movies.test.mjs
