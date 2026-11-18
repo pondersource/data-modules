@@ -316,17 +316,36 @@ export async function fetchContainerAndTracker(
   return ret;
 }
 
+
+function turtleLiteral(value: string): string {
+  if (typeof value !== 'string') throw new TypeError('Expected text');
+  return JSON.stringify(value);
+}
+
+function turtleIri(value: string): string {
+  if (typeof value !== 'string' || /[<>"{}|^\x60\\\u0000-\u0020]/u.test(value)) {
+    throw new TypeError('Expected an absolute IRI without Turtle delimiters');
+  }
+  try {
+    new URL(value);
+  } catch {
+    throw new TypeError('Expected an absolute IRI');
+  }
+  return '<' + value + '>';
+}
+
 export async function addIssue(
   localState: Interpretation,
   { title, description }: { title: string; description: string },
   authenticatedFetcher: typeof globalThis.fetch,
 ): Promise<string> {
+  turtleIri(localState.tracker?.stateUri);
   const id = `${localState.tracker.stateUri}#Iss${globalThis.crypto.randomUUID()}`;
   const inserts = [
     `<${id}> a <http://www.w3.org/2005/01/wf/flow#Open>.`,
-    `<${id}> <http://www.w3.org/2005/01/wf/flow#tracker> <${localState.tracker.indexUri}>.`,
-    `<${id}> <http://purl.org/dc/elements/1.1/title> "${title}".`,
-    `<${id}> <http://www.w3.org/2005/01/wf/flow#description> "${description}".`,
+    `<${id}> <http://www.w3.org/2005/01/wf/flow#tracker> ${turtleIri(localState.tracker.indexUri)}.`,
+    `<${id}> <http://purl.org/dc/elements/1.1/title> ${turtleLiteral(title)}.`,
+    `<${id}> <http://www.w3.org/2005/01/wf/flow#description> ${turtleLiteral(description)}.`,
     `<${id}> <http://purl.org/dc/terms/created> "${new Date().toISOString()}"^^<http://www.w3.org/2001/XMLSchema#dateTime>.`,
   ];
   const body = `@prefix solid: <http://www.w3.org/ns/solid/terms#>.
@@ -335,13 +354,14 @@ export async function addIssue(
   solid:inserts {
   ${inserts.join('\n')}
 }.`;
-  await authenticatedFetcher(localState.tracker.stateUri, {
+  const response = await authenticatedFetcher(localState.tracker.stateUri, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'text/n3',
     },
     body,
   });
+  if (!response.ok) throw new Error('Task update failed: HTTP ' + response.status);
   return id;
 }
 
@@ -354,11 +374,12 @@ export async function addComment(
   }: { issueUri: string; author: string; text: string },
   authenticatedFetcher: typeof globalThis.fetch,
 ): Promise<string> {
+  turtleIri(localState.tracker?.stateUri);
   const id = `${localState.tracker.stateUri}#Msg${globalThis.crypto.randomUUID()}`;
   const inserts = [
-    `<${issueUri}> <http://www.w3.org/2005/01/wf/flow#message> <${id}>.`,
-    `<${id}> <http://xmlns.com/foaf/0.1/maker> <${author}>.`,
-    `<${id}> <http://rdfs.org/sioc/ns#content> "${text}".`,
+    `${turtleIri(issueUri)} <http://www.w3.org/2005/01/wf/flow#message> <${id}>.`,
+    `<${id}> <http://xmlns.com/foaf/0.1/maker> ${turtleIri(author)}.`,
+    `<${id}> <http://rdfs.org/sioc/ns#content> ${turtleLiteral(text)}.`,
     `<${id}> <http://purl.org/dc/terms/created> "${new Date().toISOString()}"^^<http://www.w3.org/2001/XMLSchema#dateTime>.`,
   ];
   const body = `@prefix solid: <http://www.w3.org/ns/solid/terms#>.
@@ -367,12 +388,13 @@ export async function addComment(
   solid:inserts {
   ${inserts.join('\n')}
 }.`;
-  await authenticatedFetcher(localState.tracker.stateUri, {
+  const response = await authenticatedFetcher(localState.tracker.stateUri, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'text/n3',
     },
     body,
   });
+  if (!response.ok) throw new Error('Task update failed: HTTP ' + response.status);
   return id;
 }

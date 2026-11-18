@@ -29,7 +29,8 @@
     "typedoc": "^0.28.4",
     "typescript": "~5.7",
     "typescript-eslint": "~8.19",
-    "vitest": "^3.0.8"
+    "vitest": "^3.0.8",
+    "n3": "1.26.0"
   },
   "scripts": {
     "start": "node build/src/main.js",
