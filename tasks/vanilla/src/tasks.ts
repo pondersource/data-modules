@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { parseSchemaTasks } from './schema-tasks.js';
 import {
   getJsonLdLinkField,
   getJsonLdId,
@@ -102,6 +102,11 @@ export type InterpretedIssue = {
   description: string;
   trackerIndexUri?: string;
   commentUris: string[];
+  actionStatus?: string;
+  priority?: number;
+  dueDate?: Date;
+  completedAt?: Date;
+  completed?: boolean;
 };
 
 export type InterpretedTracker = {
@@ -282,16 +287,19 @@ export async function fetchContainer(
       return;
     }
     const docContents = await getJsonLd(docUri, authenticatedFetcher);
-    docContents.forEach(thing => {
-      const uri = getJsonLdId(thing);
-      if (typeof uri === 'string' && getJsonLdType(thing) === 'https://schema.org/Action') {
-        ret.issues[uri] = {
-          uri,
-          description: getJsonLdStringField(thing, 'https://schema.org/description'),
-          commentUris: [],
-        };
-      }
-    })
+    for (const task of parseSchemaTasks(docContents)) {
+      ret.issues[task.uri] = {
+        uri: task.uri,
+        title: task.name,
+        description: task.description ?? '',
+        actionStatus: task.actionStatus,
+        priority: task.priority,
+        dueDate: task.dueDate,
+        completedAt: task.completedAt,
+        completed: task.completed,
+        commentUris: [],
+      };
+    }
   }));
   return ret;
 }
@@ -313,7 +321,7 @@ export async function addIssue(
   { title, description }: { title: string; description: string },
   authenticatedFetcher: typeof globalThis.fetch,
 ): Promise<string> {
-  const id = `${localState.tracker.stateUri}#Iss${randomUUID()}`;
+  const id = `${localState.tracker.stateUri}#Iss${globalThis.crypto.randomUUID()}`;
   const inserts = [
     `<${id}> a <http://www.w3.org/2005/01/wf/flow#Open>.`,
     `<${id}> <http://www.w3.org/2005/01/wf/flow#tracker> <${localState.tracker.indexUri}>.`,
@@ -346,7 +354,7 @@ export async function addComment(
   }: { issueUri: string; author: string; text: string },
   authenticatedFetcher: typeof globalThis.fetch,
 ): Promise<string> {
-  const id = `${localState.tracker.stateUri}#Msg${randomUUID()}`;
+  const id = `${localState.tracker.stateUri}#Msg${globalThis.crypto.randomUUID()}`;
   const inserts = [
     `<${issueUri}> <http://www.w3.org/2005/01/wf/flow#message> <${id}>.`,
     `<${id}> <http://xmlns.com/foaf/0.1/maker> <${author}>.`,
