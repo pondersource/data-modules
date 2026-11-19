@@ -1,0 +1,10 @@
+{
+  "name": "@pondersource/rs-data-modules",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": "./src/index.js",
+  "license": "MIT",
+  "scripts": {"test": "node --test test/*.test.js", "build": "esbuild src/index.js --bundle --format=iife --global-name=PonderSourceModules --target=es2020 --outfile=dist/modules.js"},
+  "dependencies": {"n3": "1.26.0"},
+  "devDependencies": {"esbuild": "^0.25.0", "typescript": "^5.9.0"}
+}
