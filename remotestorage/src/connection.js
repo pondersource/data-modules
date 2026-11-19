@@ -5,6 +5,8 @@ export function connectApp(module, {RemoteStorage, Widget, apiKeys, element='sto
   rs.access.claim(module.name,'rw');rs.caching.enable('/'+module.name+'/');
   rs.setApiKeys(apiKeys);
   const widget=new Widget(rs,{solidProviders:{allowAnyProvider:true},skipInitial:true,leaveOpen:true});
+  const host=document.getElementById(element);
+  Object.assign(host.style,{position:'fixed',bottom:'12px',left:'12px',zIndex:'1000'});
   widget.attach(element);
   const listeners=new Set();
   let preparing;

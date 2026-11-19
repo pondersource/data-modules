@@ -45,5 +45,3 @@ export const Flashcards = {name:'flashcards',builder(client,publicClient){
 }};
 
 export {connectApp} from './connection.js';
-
-
