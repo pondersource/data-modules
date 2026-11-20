@@ -11896,6 +11896,25 @@ var PonderSourceModules = (() => {
     return result;
   }
 
+  // src/oauth-home.js
+  function useOAuthHome(rs, browser = window) {
+    for (const name of ["dropbox", "googledrive"]) {
+      const backend = rs[name];
+      if (!backend) continue;
+      const connect = backend.connect.bind(backend);
+      backend.connect = async (...args) => {
+        const previous = browser.location.href;
+        browser.history.replaceState(browser.history.state, "", browser.location.origin + "/");
+        try {
+          return await connect(...args);
+        } catch (error) {
+          browser.history.replaceState(browser.history.state, "", previous);
+          throw error;
+        }
+      };
+    }
+  }
+
   // src/connection.js
   function connectApp(module, { RemoteStorage, Widget, apiKeys, element = "storage-widget" }) {
     const rs = new RemoteStorage({ modules: [module] });
@@ -11908,7 +11927,10 @@ var PonderSourceModules = (() => {
     widget.attach(element);
     const listeners = /* @__PURE__ */ new Set();
     let preparing;
-    const ready = new Promise((resolve) => rs.on("ready", resolve));
+    const ready = new Promise((resolve) => rs.on("ready", () => {
+      useOAuthHome(rs);
+      resolve();
+    }));
     const prepare = () => preparing || (preparing = (async () => {
       const api = rs[module.name];
       api.configureSync(() => rs.startSync());

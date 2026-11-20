@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+import {useOAuthHome} from './oauth-home.js';
 /** Shared widget lifecycle. Storage remains available only through the chosen rs.js module. */
 export function connectApp(module, {RemoteStorage, Widget, apiKeys, element='storage-widget'}) {
   const rs=new RemoteStorage({modules:[module]});
@@ -10,7 +11,7 @@ export function connectApp(module, {RemoteStorage, Widget, apiKeys, element='sto
   widget.attach(element);
   const listeners=new Set();
   let preparing;
-  const ready=new Promise(resolve=>rs.on('ready',resolve));
+  const ready=new Promise(resolve=>rs.on('ready',()=>{useOAuthHome(rs);resolve();}));
   const prepare=()=>preparing ||= (async()=>{
     const api=rs[module.name];
     api.configureSync(()=>rs.startSync());

@@ -56,3 +56,9 @@ with the pinned rs.js and widget builds. Their browser acceptance tests exercise
 real Solid authentication, private writes, fresh-browser reads and sign-out.
 The module tests also cover binary round trips, RDF updates, source import,
 recipe ordering, the legacy flashcards API and public copies.
+
+Google and Dropbox authorization use the app origin as their registered callback
+(without a trailing slash in the OAuth request). The shared connection adapter
+moves to the home route before starting authorization, including when login was
+opened from an editor. A synchronous or asynchronous failure restores the old
+route. Solid retains its own route and hash restoration.
