@@ -4,7 +4,7 @@ import {useOAuthHome} from './oauth-home.js';
 export function connectApp(module, {RemoteStorage, Widget, apiKeys, element='storage-widget'}) {
   const rs=new RemoteStorage({modules:[module]});
   rs.access.claim(module.name,'rw');rs.caching.enable('/'+module.name+'/');
-  rs.setApiKeys(apiKeys);
+  rs.setApiKeys(Object.fromEntries(Object.entries(apiKeys).filter(([name])=>name!=='onedrive'||rs.onedrive)));
   const widget=new Widget(rs,{solidProviders:{allowAnyProvider:true},skipInitial:true,leaveOpen:true});
   const host=document.getElementById(element);
   Object.assign(host.style,{position:'fixed',bottom:'12px',left:'12px',zIndex:'1000'});

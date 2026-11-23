@@ -44,9 +44,9 @@ export async function executeUpdate(
   operation: UpdateOperation,
 ) {
   await updater.updateMany(operation.deletions, operation.insertions);
-  operation.filesToCreate.map((file) => {
-    createEmptyTurtleFile(fetcher, file.url);
-  });
+  await Promise.all(operation.filesToCreate.map((file) =>
+    createEmptyTurtleFile(fetcher, file.url),
+  ));
 }
 
 function createEmptyTurtleFile(fetcher: Fetcher, url: string) {

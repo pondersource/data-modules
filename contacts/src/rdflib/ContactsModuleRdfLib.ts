@@ -351,7 +351,7 @@ export class ContactsModuleRdfLib implements ContactsModule {
     return new TypeIndexQuery(
       this.store,
       publicTypeIndexNode,
-    ).queryInstancesForClass(VCARD_ADDRESS_BOOK);
+    ).queryInstancesForClass(VCARD_ADDRESS_BOOK).map(node => node.value);
   }
 
   private async fetchPrivateTypeIndex(

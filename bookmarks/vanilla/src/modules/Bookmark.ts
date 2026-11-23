@@ -6,6 +6,7 @@ import {
     createSolidDataset,
     createThing,
     getLiteral,
+    getUrlAll,
     getNamedNode,
     getPodUrlAll,
     getSolidDataset,
@@ -91,23 +92,61 @@ export class Bookmark {
         const publicEntriesTwo = await TypeIndexHelper.getFromTypeIndex(webId!, AS.Note, fetch, false);
         const instancesTwo = merge(privateEntriesTwo.instances, publicEntriesTwo.instances);
         const instances = merge(instancesOne, instancesTwo);
-        // console.log(instances);
-        if (!!instances.length) {
-            return instances as string[];
+        const containers = [...new Set([
+            ...privateEntriesOne.instanceContainers, ...publicEntriesOne.instanceContainers,
+            ...privateEntriesTwo.instanceContainers, ...publicEntriesTwo.instanceContainers,
+        ])] as string[];
+        if (instances.length || containers.length) {
+            const documents = new Set(instances as string[]), visited = new Set<string>();
+            const readContainer = async (url: string): Promise<void> => {
+                if (visited.has(url)) return;
+                if (visited.size >= 10000) throw new Error('Bookmark discovery exceeds 10000 containers');
+                visited.add(url);
+                const dataset = await getSolidDataset(url, { fetch });
+                const container = getThing(dataset, url);
+                if (!container) throw new Error('Bookmark container has no representation');
+                for (const child of getUrlAll(container, 'http://www.w3.org/ns/ldp#contains')) {
+                    if (!child.startsWith(url)) throw new Error('Bookmark member escaped its registered container');
+                    if (child.endsWith('/')) await readContainer(child);
+                    else documents.add(child);
+                }
+            };
+            for (const container of containers) await readContainer(container);
+            return [...documents];
         } else {
-            const podToUse = (await getPodUrlAll(webId!, { fetch: fetch }))[0];
+            // Reuse the scoped fetcher's profile: solid-client otherwise reads it anonymously.
+            const webIdProfile = await getSolidDataset(webId!, { fetch });
+            const podToUse = (await getPodUrlAll(webId!, { fetch, webIdProfile }))[0];
 
             const baseURL = podToUse ? podToUse : webId?.split("/profile")[0]
 
-            defaultPrivateBookmarkDocUrl = `${baseURL}${defaultPrivateBookmarkDocUrl ?? '/bookmarks/index.ttl'}`;
+            defaultPrivateBookmarkDocUrl = new URL(defaultPrivateBookmarkDocUrl || 'bookmarks/index.ttl', baseURL).href;
 
-            const defaultIndexDataset = await getSolidDataset(defaultPrivateBookmarkDocUrl, { fetch: fetch });
-
-            if (!defaultIndexDataset) {
+            try {
+                await getSolidDataset(defaultPrivateBookmarkDocUrl, { fetch });
+            } catch (error) {
+                if (error.response?.status !== 404) throw error;
                 await saveSolidDatasetAt(defaultPrivateBookmarkDocUrl, createSolidDataset(), { fetch: fetch });
             }
-
-            await TypeIndexHelper.registerInTypeIndex(webId!, "bookmarks_registry", BOOKMARK.Bookmark, fetch, defaultPrivateBookmarkDocUrl, false, true)
+            // registerInTypeIndex also re-creates the target document. Register
+            // directly so discovering an existing document cannot erase it.
+            const profile = getThing(webIdProfile, webId);
+            let indexNode = profile && getNamedNode(profile, 'http://www.w3.org/ns/solid/terms#privateTypeIndex');
+            if (!indexNode) {
+                const preferences = profile && getNamedNode(profile, 'http://www.w3.org/ns/pim/space#preferencesFile');
+                if (preferences) {
+                    const dataset = await getSolidDataset(preferences.value, { fetch });
+                    const person = getThing(dataset, webId);
+                    indexNode = person && getNamedNode(person, 'http://www.w3.org/ns/solid/terms#privateTypeIndex');
+                }
+            }
+            if (!indexNode) throw new Error('The private bookmark type index is unavailable');
+            const indexDataset = await getSolidDataset(indexNode.value, { fetch });
+            let registration = createThing({ name: 'bookmarks_registry' });
+            registration = addNamedNode(registration, RDF.type, namedNode('http://www.w3.org/ns/solid/terms#TypeRegistration'));
+            registration = addNamedNode(registration, 'http://www.w3.org/ns/solid/terms#forClass', namedNode(BOOKMARK.Bookmark));
+            registration = addNamedNode(registration, 'http://www.w3.org/ns/solid/terms#instance', namedNode(defaultPrivateBookmarkDocUrl));
+            await saveSolidDatasetAt(indexNode.value, setThing(indexDataset, registration), { fetch });
 
             return [defaultPrivateBookmarkDocUrl];
         }
@@ -178,7 +217,7 @@ export class Bookmark {
             const values = (await allPromise).flat();
             return values;
         } catch (error) {
-            return []
+            throw error;
         }
 
     }

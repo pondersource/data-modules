@@ -193,6 +193,7 @@ export class Chat {
    * Ends notification subscription with today's message resource
    */
   private async endNotificationSubscription() {
+    if (!this.subscriptionId) return;
     await this.ensureTodaysMessageResource();
     if (this.subscriptionId) {
       await this.todaysMessageResource!

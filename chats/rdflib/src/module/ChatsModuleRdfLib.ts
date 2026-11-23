@@ -75,13 +75,9 @@ export class ChatsModuleRdfLib implements ChatsModule {
     const latestDay = await this.fetchLatestSubContainer(latestMonth);
     if (!latestDay) return [];
 
-    const messagesDocument = await this.fetchMessagesDocument(latestDay);
-
-    return new MessagesDocumentQuery(
-      chatNode,
-      messagesDocument,
-      this.store,
-    ).queryMessages();
+    const documents = await this.fetchMessagesDocuments(latestDay);
+    return documents.flatMap(document => new MessagesDocumentQuery(chatNode, document, this.store).queryMessages())
+      .sort((a, b) => b.date.getTime() - a.date.getTime());
   }
 
   private async fetchLatestSubContainer(container: NamedNode) {
@@ -89,7 +85,7 @@ export class ChatsModuleRdfLib implements ChatsModule {
     return new DateContainerQuery(container, this.store).queryLatest();
   }
 
-  private async fetchMessagesDocument(container: NamedNode) {
+  private async fetchMessagesDocuments(container: NamedNode) {
     await this.support.fetchNode(container);
 
     const contents = new ContainerQuery(container, this.store).queryContents();
@@ -97,9 +93,8 @@ export class ChatsModuleRdfLib implements ChatsModule {
       (it) =>
         !this.store.holds(it, rdf("type"), ldp("Container"), container.doc()),
     );
-    const anyDocument = files[0]; // this assumes there is one and only one leaf document containing the chat messages (typically chat.ttl)
-    await this.support.fetchNode(anyDocument);
-    return anyDocument;
+    await this.support.fetchAll(files);
+    return files;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -4,6 +4,8 @@
 
 import type { ResourceStore, StoredResource } from "./resource-types.ts";
 import { TripleLines, triplesOf } from "./rdf-lines.js";
+import { Parser, DataFactory, Writer } from 'n3';
+import { expandedJsonLd } from './expanded-jsonld.js';
 
 const LDP = "http://www.w3.org/ns/ldp#";
 const PIM_STORAGE = "http://www.w3.org/ns/pim/space#Storage";
@@ -60,7 +62,7 @@ export function createLocalPod({ root, store, newEtag }: LocalPodDeps): typeof g
     if (method === "GET" || method === "HEAD") return read(url, method, headers, current);
     if (method === "POST") {
       if (!url.endsWith("/") || current?.kind !== "container") return answer(url,409);
-      const container = headers.get("Link")?.includes("BasicContainer") ?? false;
+      const container = /<http:\/\/www\.w3\.org\/ns\/ldp#(?:Basic)?Container>/.test(headers.get("Link") || "");
       const slug = encodeURIComponent(headers.get("Slug") || crypto.randomUUID());
       const target = url + slug + (container ? "/" : "");
       const result = await handle({...request,url:target,method:"PUT"});
@@ -108,11 +110,17 @@ export function createLocalPod({ root, store, newEtag }: LocalPodDeps): typeof g
     if (current === undefined) return answer(url, 404);
     if (headers.get("If-None-Match") === current.etag)
       return answer(url, 304, null, { ETag: current.etag });
-    const { body, contentType } = await representationOf(url, current);
+    let { body, contentType } = await representationOf(url, current);
+    if(current.kind!=='file' && headers.get('Accept')?.includes('application/ld+json')) {
+      body=JSON.stringify(expandedJsonLd(String(body),url));contentType='application/ld+json';
+    }
     return answer(url, 200, method === "HEAD" ? null : body, {
       "Content-Type": contentType,
       ETag: current.etag,
       Link: linksOf(url, current),
+      'Accept-Patch':'application/sparql-update, text/n3',
+      'WAC-Allow':'user="read write append"',
+      'MS-Author-Via':'SPARQL',
     });
   }
 
@@ -135,10 +143,12 @@ export function createLocalPod({ root, store, newEtag }: LocalPodDeps): typeof g
     const contentType = headers.get("Content-Type") ?? "";
     const text = typeof request.body === "string" ? request.body : null;
     if (method === "PATCH") {
-      if (!contentType.startsWith("application/sparql-update") || text === null)
+      if ((!contentType.startsWith("application/sparql-update") && !contentType.startsWith("text/n3")) || text === null)
         return answer(url, 415);
       if (current !== undefined && current.kind !== "rdf") return answer(url, 409);
-      const triples = await patched(url, current?.triples ?? [], text);
+      const triples = contentType.startsWith('text/n3')
+        ? await n3Patched(url,current?.triples ?? [],text)
+        : await patched(url, current?.triples ?? [], text);
       if (triples === null) return answer(url, 400);
       return { kind: "rdf", etag: newEtag(), triples };
     }
@@ -182,7 +192,10 @@ export function createLocalPod({ root, store, newEtag }: LocalPodDeps): typeof g
       ...(resource.triples ?? []),
       `<${url}> <${RDF_TYPE}> <${LDP}Container> .`,
       `<${url}> <${RDF_TYPE}> <${LDP}BasicContainer> .`,
-      ...(await childrenOf(url)).map((child) => `<${url}> <${LDP}contains> <${child}> .`),
+      ...(await childrenOf(url)).flatMap((child) => [
+        `<${url}> <${LDP}contains> <${child}> .`,
+        ...(child.endsWith('/')?[`<${child}> <${RDF_TYPE}> <${LDP}Container> .`, `<${child}> <${RDF_TYPE}> <${LDP}BasicContainer> .`]:[])
+      ]),
     ];
     return { body: lines.join("\n"), contentType: "text/turtle" };
   }
@@ -225,6 +238,31 @@ async function patched(
     }
   }
   return [...result];
+}
+
+/** Ground InsertDeletePatch used by the Solid tasks writer. Conditions and
+ * variable matching are deliberately rejected instead of silently ignored. */
+async function n3Patched(url: string, triples: readonly string[], update: string): Promise<string[] | null> {
+  try {
+    const quads = new Parser({baseIRI:url,format:'N3'}).parse(update);
+    const solid='http://www.w3.org/ns/solid/terms#';
+    const root=quads.filter(q=>q.graph.termType==='DefaultGraph');
+    const patches=root.filter(q=>q.predicate.value===RDF_TYPE && q.object.value===solid+'InsertDeletePatch');
+    if(patches.length!==1 || root.some(q=>![RDF_TYPE,solid+'inserts',solid+'deletes'].includes(q.predicate.value)))return null;
+    const result=new TripleLines(triples);
+    for(const link of root.filter(q=>q.predicate.value===solid+'deletes'||q.predicate.value===solid+'inserts')) {
+      const contents=quads.filter(q=>q.graph.equals(link.object));
+      if(contents.some(q=>[q.subject,q.predicate,q.object].some(t=>t.termType==='Variable'||t.termType==='BlankNode')))return null;
+      // Use the same RDF serializer as the resource store for term fidelity.
+      const writer=new Writer({format:'N-Triples'});
+      writer.addQuads(contents.map(q=>DataFactory.quad(q.subject,q.predicate,q.object)));
+      const text=await new Promise<string>((resolve,reject)=>writer.end((error,text)=>error?reject(error):resolve(text)));
+      for(const line of text.split('\n').filter(Boolean)) {
+        if(link.predicate.value===solid+'deletes')result.delete(line);else result.add(line);
+      }
+    }
+    return [...result];
+  } catch {return null;}
 }
 
 /**
@@ -309,7 +347,7 @@ function answer(
 ): Response {
   const response = new Response(status === 304 || status === 204 || status === 205 ? null : body, {
     status,
-    headers,
+    headers: {'Accept-Patch':'application/sparql-update, text/n3','WAC-Allow':'user="read write append"','MS-Author-Via':'SPARQL',...headers},
   });
   Object.defineProperty(response, "url", { value: url });
   return response;
