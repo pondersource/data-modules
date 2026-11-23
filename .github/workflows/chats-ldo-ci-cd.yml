@@ -36,7 +36,7 @@ jobs:
           retention-days: 1
 
   npm-publish:
-    if: github.ref == 'refs/heads/main'
+    if: github.repository == 'solid-contrib/data-modules' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     outputs:
@@ -62,7 +62,7 @@ jobs:
           access: public
 
   npm-release-latest:
-    if: github.ref == 'refs/heads/main'
+    if: github.repository == 'solid-contrib/data-modules' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     steps:
