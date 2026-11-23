@@ -1,0 +1,1567 @@
+@base <https://solid-memo.com/ns/vocab/v1.ttl> .
+
+@prefix solid-memo: <https://solid-memo.com/ns/vocab/v1.ttl#> .
+@prefix owl:        <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:       <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:       <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms:    <http://purl.org/dc/terms/> .
+@prefix xsd:        <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcat:       <http://www.w3.org/ns/dcat#> .
+@prefix schema:     <https://schema.org/> .
+
+# The Solid Memo vocabulary. Terms are only ever ADDED within this
+# namespace; a term's meaning or range never changes. A breaking change is
+# a new namespace (ns/vocab/v2.ttl#), never an edit of this one. Each addition
+# bumps owl:versionInfo and appends to the change note; every term says in
+# its history note when it arrived.
+<>
+    a owl:Ontology ;
+    dcterms:title "Solid Memo vocabulary, v1" ;
+    dcterms:description "Terms for spaced-repetition flashcards stored in a Solid pod: instances, decks, cards, review state (SM-2 or FSRS-6) and study preferences." ;
+    owl:versionInfo "1.28" ;
+    skos:changeNote "1.0: Instance, Deck, Card, ReviewState, Preferences, formatVersion, cardsDocument, reviewsDocument, front, back, the SM-2 fields and the study caps. 1.1: developerMode. 1.2: the previous* snapshot. 1.3: frontImage, backImage (card format 2). 1.4: cardCount (library index). 1.5: direction (deck format 2). 1.6: the StudyDirections and InvalidDataPolicies concept schemes, studyDirection (deck format 3) and invalidDataPolicy (preferences format 3); direction deprecated. 1.7: deckNewCardsPerDay, deckMaxReviewsPerDay (a deck's own study caps). 1.8: frontNote, backLabel, backNote (card format 3). 1.9: DocumentReceipt and DeckSchedule, the instance digest that lets a visit skip documents that have not changed. 1.10: Answer, the answer log the study statistics are computed from. 1.11: the Themes concept scheme and theme (preferences format 4). 1.12: frontImageDescription, backImageDescription (card format 4, without a version bump). 1.13: DeckGroup and position, the user's arrangement of the deck list (deck group format 1; on a deck, position needs no deck format bump). 1.14: Chapter, Step and Distractor, the outline of a course (a library deck that is also a schema:Course), its theory and the wrong options of its multiple-choice questions (chapter, step and distractor format 1; distractor on a card without a card format bump); completedChapter, a course's progress on the user's copy; the AnswerModes concept scheme, answerMode and chosenDistractor (on an answer, without an answer format bump). 1.15: the TextFormats concept scheme and textFormat, how the texts of a card, a course step or a chapter are written, plain or Markdown (on each without a format bump). 1.16: reviewOf and reviewDirection, the card and direction a review state is of, and scheduler with the Schedulers concept scheme (review-state format 2, without a format bump). 1.17: newcomerCourse, the course the deck library's index offers to newcomers (on the catalogue, outside every shape). 1.18: releaseDraft and publishedRelease, a catalogue's drafts of releases and the releases it published (on the catalogue, outside every shape), and releasedAs, the release a draft was published as (draft deck format 1). 1.19: recallMillis, gradeMillis, priorDue and utcOffsetMinutes, how long an answer took, when its prompt was due and the device's offset from UTC (on an answer, without an answer format bump). 1.20: frontLabel, a caption above the front (card format 6). 1.21: fsrs6, the FSRS-6 scheduler, a concept of Schedulers, with stability, difficulty, previousStability and previousDifficulty (FSRS review-state format 1, a new shape of ReviewState told apart by its scheduler); studyScheduler and desiredRetention, which scheduler sets the due days and the retention FSRS-6 aims at, and schedulerInvitationDismissed, whether the learner declined the invitation to switch to FSRS-6 (preferences format 5); scheduledWith, the scheduler whose due days a deck schedule counts (deck schedule format 2). 1.22: the Palettes and TextSizes concept schemes, palette and textSize, the colors the app is shown in and the size of its text (preferences format 6). 1.23: Palette and ColorSet, a palette the user designs, with basedOn, lightColors, darkColors and a property for each color it sets (palette and color set format 1, in the instance's palettes document); preferences choose one with palette, without a format bump. 1.24: deckCardLanguage, the language a deck's card text is shown in first, written on a deck outside deck format 6. 1.25: MonthSummary, a summary of one study month of the answer log in the instance digest, so the today strip need not read past months that have not changed (month summary format 1). 1.26: connectedScreenSkipped, whether logging in skips the screen that says the Pod is connected, written on preferences outside preferences format 6. 1.27: fromRelease, the library release a card of a learner's deck was taken from, so that an upgrade changes, retires or removes only the cards a release gave the deck, written on a card outside card format 7. 1.28: deckPictureHost, a host whose pictures the learner chose to show on a deck, written on the deck's catalog entry outside deck format 6, so that a deck that asks about its pictures keeps the choice." .
+
+#################### Classes ####################
+
+solid-memo:Instance
+    a owl:Class ;
+    rdfs:label "Instance" ;
+    rdfs:comment "One Solid Memo data location: a container in a pod holding decks, cards, review state and preferences. Described by the container's meta document." ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Since 1.0." .
+
+solid-memo:Deck
+    a owl:Class ;
+    rdfs:label "Deck" ;
+    rdfs:comment "A named set of cards studied together. In a pod, a subject of the instance's catalog document; in the deck library, the document itself." ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Since 1.0." .
+
+solid-memo:Card
+    a owl:Class ;
+    rdfs:label "Card" ;
+    rdfs:comment "A flashcard: a front and a back, each text, a picture, or both." ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Since 1.0." .
+
+solid-memo:ReviewState
+    a owl:Class ;
+    rdfs:label "Review state" ;
+    rdfs:comment "Scheduling state of one card in one study direction, its fields those of the scheduler it names with scheduler: SM-2 where it names none, FSRS-6 since 1.21. It names its card with reviewOf and the direction with reviewDirection (since 1.16); without them, its subject is named after the card: #<cardId> for front-to-back, #<cardId>@back-to-front for the other way." ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Since 1.0." .
+
+solid-memo:Preferences
+    a owl:Class ;
+    rdfs:label "Preferences" ;
+    rdfs:comment "Study preferences of one instance: daily caps, the day boundary, the answer scale and developer mode." ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Since 1.0." .
+
+solid-memo:DocumentReceipt
+    a owl:Class ;
+    rdfs:label "Document receipt" ;
+    rdfs:comment "What Solid Memo found an instance document to be at one version of it (its ETag): that it conformed to the shapes, that nothing in it was in an older format. A subject of the instance's digest document; derived data, rebuilt whenever it does not hold." ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.9." .
+
+solid-memo:DeckSchedule
+    a owl:Class ;
+    rdfs:label "Deck schedule" ;
+    rdfs:comment "How many of a deck's prompts fall due on which study day and how many are still new, computed from given versions of its cards and reviews documents, so the deck list can count today's study without them. A subject of the instance's digest document; derived data, rebuilt whenever it does not hold." ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.9." .
+
+solid-memo:MonthSummary
+    a owl:Class ;
+    rdfs:label "Month summary" ;
+    rdfs:comment "What the today strip needs of one study month of the answer log, summarized from a given version of the month's document: each study day's answers, introductions, reviews and lapses, the month's reviews of young prompts and how many were remembered, and how many recalled answers took each whole second. A subject of the instance's digest document; derived data, rebuilt whenever it does not hold." ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.25." .
+
+solid-memo:Answer
+    a owl:Class ;
+    rdfs:label "Answer" ;
+    rdfs:comment "One grade given to one prompt (a card, studied one way) during study: an entry of the instance's answer log, one document per study month, which the study statistics are computed from. Appended, never edited; resetting a study day removes that day's answers." ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.10." .
+
+solid-memo:DeckGroup
+    a owl:Class ;
+    rdfs:subClassOf dcat:Catalog ;
+    rdfs:label "Deck group" ;
+    rdfs:comment "A named group of decks and deck groups that the user arranged on the deck list. A subject of the instance's catalog document: a dcat:Catalog of its decks (dcat:dataset) and sub-groups (dcat:catalog), listed by the one catalogue or group it is in." ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.13." .
+
+solid-memo:Chapter
+    a owl:Class ;
+    rdfs:subClassOf schema:Syllabus ;
+    rdfs:label "Chapter" ;
+    rdfs:comment "A chapter of a course: a library deck that is also a schema:Course. A subject of the deck's release beside its cards, part of the course (schema:isPartOf) at its place (schema:position), made of steps that each teach a piece of theory and check it with questions, and ending with a review of all its questions. Never copied into a pod: a copy reads it from the release it came from." ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.14." .
+
+solid-memo:Step
+    a owl:Class ;
+    rdfs:subClassOf schema:LearningResource ;
+    rdfs:label "Step" ;
+    rdfs:comment "One step of a course chapter: a short piece of theory, then the multiple-choice questions (cards) that check it. A subject of the deck's release, part of its chapter (schema:isPartOf) at its place (schema:position)." ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.14." .
+
+solid-memo:Distractor
+    a owl:Class ;
+    rdfs:subClassOf schema:Answer ;
+    rdfs:label "Distractor" ;
+    rdfs:comment "A wrong option of a card asked as a multiple-choice question, the card's back being the right one. A subject of the document that holds its card, which names it with solid-memo:distractor; copied with the card." ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.14." .
+
+solid-memo:Palette
+    a owl:Class ;
+    rdfs:subClassOf skos:Concept ;
+    rdfs:label "Palette" ;
+    rdfs:comment "A palette the user designed: its name, the palette of solid-memo:Palettes it is based on, and its colors in the light theme and in the dark, each a solid-memo:ColorSet. A subject of the instance's palettes document. The instance's preferences choose it with solid-memo:palette, as they choose a concept of solid-memo:Palettes. A color it does not set is the base palette's." ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23." .
+
+solid-memo:ColorSet
+    a owl:Class ;
+    rdfs:label "Color set" ;
+    rdfs:comment "The colors of a user's palette in one theme, the light or the dark: for each color it sets, an opaque sRGB color written #rrggbb. A subject of the instance's palettes document, beside its palette." ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23." .
+
+#################### Shared ####################
+
+solid-memo:formatVersion
+    a owl:DatatypeProperty ;
+    rdfs:label "format version" ;
+    rdfs:comment "Which version of its class's shape the subject conforms to. Absent means 1, the format that predates the field. Every subject Solid Memo writes carries it." ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Since 1.0." .
+
+solid-memo:position
+    a owl:DatatypeProperty ;
+    rdfs:label "position" ;
+    rdfs:comment "Where a deck or deck group stands among the members of the one catalogue or group it is in, 0 first; the decks and groups of one parent share one sequence. Absent means after every member that has one." ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.13. On a deck it is outside the deck format, without a version bump: an older reader ignores it and an older writer keeps it." .
+
+solid-memo:textFormat
+    a owl:ObjectProperty ;
+    rdfs:label "text format" ;
+    rdfs:comment "How a subject's texts are written: a concept of solid-memo:TextFormats. On a card (solid-memo:Card) it covers exactly solid-memo:front, back, frontNote, frontLabel, backNote and backLabel, and the distractorText and distractorNote of the card's distractors, which carry no text format of their own; on a course step (solid-memo:Step), its solid-memo:theory; on a course chapter (solid-memo:Chapter), its dcterms:description, never its title. These lists are fixed for 1.x: a new text predicate needs its own decision (1.20 added frontLabel to a card's, a caption like backLabel). A picture's description and every other text are always plain. Absent means plain text, shown as written. Each language's value is its own document, and its language tag still says what language the prose is in. A concept this reader does not know is read as plain text." ;
+    rdfs:range skos:Concept ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.15. On a card, step or chapter it is outside the format's version: an older reader ignores it and shows the text as written; an older writer keeps it through an edit, but drops it when it copies a card from the library, which the library upgrade repairs." .
+
+#################### Deck ####################
+
+solid-memo:cardsDocument
+    a owl:ObjectProperty ;
+    rdfs:label "cards document" ;
+    rdfs:comment "The document holding the deck's cards, one sm:Card per hash fragment." ;
+    rdfs:domain solid-memo:Deck ;
+    rdfs:range rdfs:Resource ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Since 1.0." .
+
+solid-memo:reviewsDocument
+    a owl:ObjectProperty ;
+    rdfs:label "reviews document" ;
+    rdfs:comment "The document holding the deck's review states, joined to its cards by fragment id." ;
+    rdfs:domain solid-memo:Deck ;
+    rdfs:range rdfs:Resource ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Since 1.0." .
+
+solid-memo:direction
+    a owl:DatatypeProperty ;
+    rdfs:label "direction" ;
+    rdfs:comment "How the deck is studied: \"front-to-back\", \"back-to-front\" or \"bidirectional\" (every card asked both ways, each way scheduled on its own). Absent means front-to-back." ;
+    rdfs:domain solid-memo:Deck ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.5 for deck format 2; deprecated in 1.6 for studyDirection." ;
+    owl:deprecated true ;
+    dcterms:isReplacedBy solid-memo:studyDirection .
+
+solid-memo:studyDirection
+    a owl:ObjectProperty ;
+    rdfs:label "study direction" ;
+    rdfs:comment "How the deck is studied: a concept of solid-memo:StudyDirections. Replaces the string-valued direction." ;
+    rdfs:domain solid-memo:Deck ;
+    rdfs:range skos:Concept ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.6 for deck format 3." .
+
+solid-memo:cardCount
+    a owl:DatatypeProperty ;
+    rdfs:label "card count" ;
+    rdfs:comment "In the deck library's index only: how many cards a listed deck document holds." ;
+    rdfs:domain solid-memo:Deck ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.4 for the library index." .
+
+solid-memo:newcomerCourse
+    a owl:ObjectProperty ;
+    rdfs:label "course for newcomers" ;
+    rdfs:comment "In the deck library's index only: the series (dcat:DatasetSeries) of a course the app offers to someone who has no decks yet, to start with. Absent means none is offered." ;
+    rdfs:domain dcat:Catalog ;
+    rdfs:range dcat:DatasetSeries ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.17 for the library index. It belongs to no shape: CatalogV1 does not own it, so the catalogue format did not move." .
+
+solid-memo:deckNewCardsPerDay
+    a owl:DatatypeProperty ;
+    rdfs:label "deck new cards per day" ;
+    rdfs:comment "Maximum unseen cards of this deck introduced per study day, in place of the instance's newCardsPerDay. Absent means the instance's." ;
+    rdfs:domain solid-memo:Deck ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.7." .
+
+solid-memo:deckMaxReviewsPerDay
+    a owl:DatatypeProperty ;
+    rdfs:label "deck max reviews per day" ;
+    rdfs:comment "Maximum due-card reviews of this deck per study day, in place of the instance's maxReviewsPerDay. Absent means the instance's." ;
+    rdfs:domain solid-memo:Deck ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.7." .
+
+solid-memo:deckCardLanguage
+    a owl:DatatypeProperty ;
+    rdfs:label "deck card language" ;
+    rdfs:comment "The language, as a lower-case BCP 47 tag, the learner wants this deck's card text shown in first: its fronts, backs, notes, labels, picture descriptions and wrong options (distractors). On a deck that is a course it ranks all of the course's text too: the course's title and description, each chapter's title and description and each step's theory. A text with no value in that language falls back to the usual order (the app's language, then the browser's, then English). The deck's keywords, and the title and description of a deck that is no course, are not affected. Absent means the usual order." ;
+    rdfs:domain solid-memo:Deck ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.24. On a deck it is outside the deck format, without a version bump: an older reader ignores it and an older writer keeps it. Its definition took in a course's text after 1.25, without a version bump, as no term was added and no stored value changed its meaning." .
+
+solid-memo:deckPictureHost
+    a owl:DatatypeProperty ;
+    rdfs:label "deck picture host" ;
+    rdfs:comment "A host, as a URL writes it with any port that is not the default, whose pictures the learner chose to show on the cards of this deck, one value per host. Only a deck copied from a release outside the library's index, in the learner's own pod, reads it: a picture from any other host stays hidden on it, and nothing is requested from that host. The learner's choice alone sets it, never a release, and in a catalog outside the learner's pod it is not believed. Absent means none chosen." ;
+    rdfs:domain solid-memo:Deck ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.28. On a deck it is outside the deck format, without a version bump: an older reader ignores it and an older writer keeps it." .
+
+#################### Card ####################
+
+solid-memo:front
+    a owl:DatatypeProperty ;
+    rdfs:label "front" ;
+    rdfs:comment "Text on the front of the card." ;
+    rdfs:domain solid-memo:Card ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Since 1.0." .
+
+solid-memo:back
+    a owl:DatatypeProperty ;
+    rdfs:label "back" ;
+    rdfs:comment "Text on the back of the card." ;
+    rdfs:domain solid-memo:Card ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Since 1.0." .
+
+solid-memo:frontImage
+    a owl:ObjectProperty ;
+    rdfs:label "front image" ;
+    rdfs:comment "A picture on the front of the card, shown above any text. Always an IRI, never a string literal." ;
+    rdfs:domain solid-memo:Card ;
+    rdfs:range rdfs:Resource ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.3 for card format 2." .
+
+solid-memo:backImage
+    a owl:ObjectProperty ;
+    rdfs:label "back image" ;
+    rdfs:comment "A picture on the back of the card, shown above any text. Always an IRI, never a string literal." ;
+    rdfs:domain solid-memo:Card ;
+    rdfs:range rdfs:Resource ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.3 for card format 2." .
+
+solid-memo:frontImageDescription
+    a owl:DatatypeProperty ;
+    rdfs:label "front image description" ;
+    rdfs:comment "What the front's picture shows, in words: its text alternative for whoever cannot see it. Language-tagged text, one per language. While the front is the question it should not give the answer away." ;
+    rdfs:domain solid-memo:Card ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.12, in card format 4 without a version bump: an older reader ignores it." .
+
+solid-memo:backImageDescription
+    a owl:DatatypeProperty ;
+    rdfs:label "back image description" ;
+    rdfs:comment "What the back's picture shows, in words: its text alternative for whoever cannot see it. Language-tagged text, one per language. While the back is the question it should not give the answer away." ;
+    rdfs:domain solid-memo:Card ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.12, in card format 4 without a version bump: an older reader ignores it." .
+
+solid-memo:frontNote
+    a owl:DatatypeProperty ;
+    rdfs:label "front note" ;
+    rdfs:comment "A short note under the front's text, smaller, shown once the answer is revealed, so it never gives the answer away: what holds of the front (\"Out of use\"). Language-tagged text in any language, one per language." ;
+    rdfs:domain solid-memo:Card ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.8 for card format 3." .
+
+solid-memo:frontLabel
+    a owl:DatatypeProperty ;
+    rdfs:label "front label" ;
+    rdfs:comment "A short caption above the front's text that says what kind of thing it is (\"Country\", \"Infinitive\"), shown whenever the front is, smaller than it, so a card studied both ways says what is asked: its counterpart is solid-memo:backLabel. The front's text stays the prompt itself. Language-tagged text in any language, one per language." ;
+    rdfs:domain solid-memo:Card ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.20 for card format 6." .
+
+solid-memo:backLabel
+    a owl:DatatypeProperty ;
+    rdfs:label "back label" ;
+    rdfs:comment "A short caption above the back's text that says what kind of answer it is (\"Out of use · replaced by\", \"Capital\", \"Past tense\"), shown whenever the back is, smaller than it. The back's text stays the answer itself. Language-tagged text in any language, one per language." ;
+    rdfs:domain solid-memo:Card ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.8 for card format 3." .
+
+solid-memo:backNote
+    a owl:DatatypeProperty ;
+    rdfs:label "back note" ;
+    rdfs:comment "A short note under the back's text, smaller, shown once the answer is revealed: when or why something changed, where it comes from. The back's text stays the answer itself. Language-tagged text in any language, one per language." ;
+    rdfs:domain solid-memo:Card ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.8 for card format 3." .
+
+solid-memo:distractor
+    a owl:ObjectProperty ;
+    rdfs:label "distractor" ;
+    rdfs:comment "A wrong option to show next to the card's back when the card is asked as a multiple-choice question; a subject of the same document. A card with distractors has text on its back, the right option." ;
+    rdfs:domain solid-memo:Card ;
+    rdfs:range solid-memo:Distractor ;
+    rdfs:seeAlso schema:suggestedAnswer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.14. Outside the card format's version: an older reader ignores it and studies the card front to back." .
+
+solid-memo:fromRelease
+    a owl:ObjectProperty ;
+    rdfs:label "from release" ;
+    rdfs:comment "On a card of a learner's deck: the library release (a dcat:Dataset of a library deck series) the card was taken from, written as the deck takes the card from a release: as the deck is added from the library or a link, as an upgrade adds or writes the card, or as a course's question joins the deck. A card moved or copied into the deck, or one the learner wrote, names none. In a deck added from a link, an upgrade to a newer release changes, retires or removes only cards that name a release, and leaves the others as the learner has them; in a copy of a series the library's own index lists, a card that names none is matched to the releases by its id, as copies made before 1.27 name none." ;
+    rdfs:domain solid-memo:Card ;
+    rdfs:range dcat:Dataset ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.27. On a card it is outside the card format, without a version bump: an older reader ignores it and an older writer keeps it." .
+
+#################### Review state ####################
+
+solid-memo:easeFactor
+    a owl:DatatypeProperty ;
+    rdfs:label "ease factor" ;
+    rdfs:comment "SM-2 easiness factor, never below 1.3." ;
+    rdfs:domain solid-memo:ReviewState ;
+    rdfs:range xsd:decimal ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Since 1.0." .
+
+solid-memo:intervalDays
+    a owl:DatatypeProperty ;
+    rdfs:label "interval (days)" ;
+    rdfs:comment "Days between the last review and the next due day." ;
+    rdfs:domain solid-memo:ReviewState ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Since 1.0." .
+
+solid-memo:repetitions
+    a owl:DatatypeProperty ;
+    rdfs:label "repetitions" ;
+    rdfs:comment "Successful reviews in a row." ;
+    rdfs:domain solid-memo:ReviewState ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Since 1.0." .
+
+solid-memo:due
+    a owl:DatatypeProperty ;
+    rdfs:label "due" ;
+    rdfs:comment "The study day the card becomes due, as a plain \"YYYY-MM-DD\" string: a study day is a calendar label, not an instant, and an xsd:date would risk timezone shifts." ;
+    rdfs:domain solid-memo:ReviewState ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Since 1.0." .
+
+solid-memo:firstReviewedAt
+    a owl:DatatypeProperty ;
+    rdfs:label "first reviewed at" ;
+    rdfs:comment "When the card was first reviewed in this direction (its introduction)." ;
+    rdfs:domain solid-memo:ReviewState ;
+    rdfs:range xsd:dateTime ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Since 1.0." .
+
+solid-memo:lastReviewedAt
+    a owl:DatatypeProperty ;
+    rdfs:label "last reviewed at" ;
+    rdfs:comment "When the card was most recently reviewed in this direction." ;
+    rdfs:domain solid-memo:ReviewState ;
+    rdfs:range xsd:dateTime ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Since 1.0." .
+
+solid-memo:previousEaseFactor
+    a owl:DatatypeProperty ;
+    rdfs:label "previous ease factor" ;
+    rdfs:comment "Snapshot: the ease factor before the first review of the study day of lastReviewedAt. An SM-2 state writes its five previous* terms (previousEaseFactor, previousIntervalDays, previousRepetitions, previousDue, previousLastReviewedAt) all together or not at all; resetting the day restores them." ;
+    rdfs:domain solid-memo:ReviewState ;
+    rdfs:range xsd:decimal ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.2 for resetting the study day." .
+
+solid-memo:previousIntervalDays
+    a owl:DatatypeProperty ;
+    rdfs:label "previous interval (days)" ;
+    rdfs:comment "Snapshot: the interval before the first review of the study day." ;
+    rdfs:domain solid-memo:ReviewState ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.2 for resetting the study day." .
+
+solid-memo:previousRepetitions
+    a owl:DatatypeProperty ;
+    rdfs:label "previous repetitions" ;
+    rdfs:comment "Snapshot: the repetition count before the first review of the study day." ;
+    rdfs:domain solid-memo:ReviewState ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.2 for resetting the study day." .
+
+solid-memo:previousDue
+    a owl:DatatypeProperty ;
+    rdfs:label "previous due" ;
+    rdfs:comment "Snapshot: the due day before the first review of the study day." ;
+    rdfs:domain solid-memo:ReviewState ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.2 for resetting the study day." .
+
+solid-memo:previousLastReviewedAt
+    a owl:DatatypeProperty ;
+    rdfs:label "previous last reviewed at" ;
+    rdfs:comment "Snapshot: lastReviewedAt before the first review of the study day." ;
+    rdfs:domain solid-memo:ReviewState ;
+    rdfs:range xsd:dateTime ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.2 for resetting the study day." .
+
+solid-memo:reviewOf
+    a owl:ObjectProperty ;
+    rdfs:label "review of" ;
+    rdfs:comment "The card the review state is of, a subject of its deck's cards document. Where it is absent, the card is named by the state's subject: #<cardId> or #<cardId>@back-to-front." ;
+    rdfs:domain solid-memo:ReviewState ;
+    rdfs:range solid-memo:Card ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.16, in review-state format 2 without a version bump: an older reader names the card by the subject, as before." .
+
+solid-memo:reviewDirection
+    a owl:ObjectProperty ;
+    rdfs:label "review direction" ;
+    rdfs:comment "The way the card is asked in the review state: solid-memo:frontToBack or solid-memo:backToFront, a concept of solid-memo:StudyDirections (never solid-memo:bidirectional: each way has its own state). Where it is absent, the direction is named by the state's subject: back to front when it ends in @back-to-front, else front to back." ;
+    rdfs:domain solid-memo:ReviewState ;
+    rdfs:range skos:Concept ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.16, in review-state format 2 without a version bump: an older reader names the direction by the subject, as before." .
+
+solid-memo:scheduler
+    a owl:ObjectProperty ;
+    rdfs:label "scheduler" ;
+    rdfs:comment "The scheduling algorithm the review state's fields belong to: a concept of solid-memo:Schedulers. Absent means solid-memo:sm2, as every state was before 1.16." ;
+    rdfs:domain solid-memo:ReviewState ;
+    rdfs:range skos:Concept ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.16, in review-state format 2 without a version bump: an older reader takes every state for SM-2, as before." .
+
+solid-memo:stability
+    a owl:DatatypeProperty ;
+    rdfs:label "stability" ;
+    rdfs:comment "FSRS-6 memory stability: the days from the last review until the chance of recalling the card has fallen to 90%. Always greater than 0." ;
+    rdfs:domain solid-memo:ReviewState ;
+    rdfs:range xsd:decimal ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.21 for FSRS review-state format 1." .
+
+solid-memo:difficulty
+    a owl:DatatypeProperty ;
+    rdfs:label "difficulty" ;
+    rdfs:comment "FSRS-6 difficulty: how hard the card is to remember, from 1 (easiest) to 10 (hardest)." ;
+    rdfs:domain solid-memo:ReviewState ;
+    rdfs:range xsd:decimal ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.21 for FSRS review-state format 1." .
+
+solid-memo:previousStability
+    a owl:DatatypeProperty ;
+    rdfs:label "previous stability" ;
+    rdfs:comment "Snapshot: the stability before the first review of the study day of lastReviewedAt. An FSRS-6 state writes its four previous* terms (previousStability, previousDifficulty, previousDue, previousLastReviewedAt) all together or not at all; resetting the day restores them." ;
+    rdfs:domain solid-memo:ReviewState ;
+    rdfs:range xsd:decimal ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.21 for FSRS review-state format 1." .
+
+solid-memo:previousDifficulty
+    a owl:DatatypeProperty ;
+    rdfs:label "previous difficulty" ;
+    rdfs:comment "Snapshot: the difficulty before the first review of the study day." ;
+    rdfs:domain solid-memo:ReviewState ;
+    rdfs:range xsd:decimal ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.21 for FSRS review-state format 1." .
+
+#################### Preferences ####################
+
+solid-memo:newCardsPerDay
+    a owl:DatatypeProperty ;
+    rdfs:label "new cards per day" ;
+    rdfs:comment "Maximum unseen cards introduced per study day." ;
+    rdfs:domain solid-memo:Preferences ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Since 1.0." .
+
+solid-memo:maxReviewsPerDay
+    a owl:DatatypeProperty ;
+    rdfs:label "max reviews per day" ;
+    rdfs:comment "Maximum due-card reviews per study day." ;
+    rdfs:domain solid-memo:Preferences ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Since 1.0." .
+
+solid-memo:dayBoundaryHour
+    a owl:DatatypeProperty ;
+    rdfs:label "day boundary hour" ;
+    rdfs:comment "Local hour (0-23) at which the study day rolls over: with 4, reviewing at 03:00 still counts as the previous day." ;
+    rdfs:domain solid-memo:Preferences ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Since 1.0." .
+
+solid-memo:answerScale
+    a owl:DatatypeProperty ;
+    rdfs:label "answer scale" ;
+    rdfs:comment "Which grading buttons a study session shows: \"sm2\" (the six SM-2 grades) or \"minimal\"." ;
+    rdfs:domain solid-memo:Preferences ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Since 1.0." .
+
+solid-memo:developerMode
+    a owl:DatatypeProperty ;
+    rdfs:label "developer mode" ;
+    rdfs:comment "Whether the instance shows developer tools (the raw WebID document, shape validation). Absent means off." ;
+    rdfs:domain solid-memo:Preferences ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.1." .
+
+solid-memo:invalidDataPolicy
+    a owl:ObjectProperty ;
+    rdfs:label "invalid data policy" ;
+    rdfs:comment "What the app does when data in the instance does not conform to its shapes: a concept of solid-memo:InvalidDataPolicies." ;
+    rdfs:domain solid-memo:Preferences ;
+    rdfs:range skos:Concept ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.6 for preferences format 3." .
+
+solid-memo:theme
+    a owl:ObjectProperty ;
+    rdfs:label "theme" ;
+    rdfs:comment "Whether the app is shown light, dark, or as the browser prefers: a concept of solid-memo:Themes." ;
+    rdfs:domain solid-memo:Preferences ;
+    rdfs:range skos:Concept ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.11 for preferences format 4." .
+
+solid-memo:studyScheduler
+    a owl:ObjectProperty ;
+    rdfs:label "study scheduler" ;
+    rdfs:comment "The scheduler whose review states set the study days the instance's cards fall due on: a concept of solid-memo:Schedulers." ;
+    rdfs:domain solid-memo:Preferences ;
+    rdfs:range skos:Concept ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.21 for preferences format 5." .
+
+solid-memo:desiredRetention
+    a owl:DatatypeProperty ;
+    rdfs:label "desired retention" ;
+    rdfs:comment "The chance of recalling a card on the day it falls due that FSRS-6 schedules for, as a share: 0.9 is 90%." ;
+    rdfs:domain solid-memo:Preferences ;
+    rdfs:range xsd:decimal ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.21 for preferences format 5." .
+
+solid-memo:schedulerInvitationDismissed
+    a owl:DatatypeProperty ;
+    rdfs:label "scheduler invitation dismissed" ;
+    rdfs:comment "Whether the learner answered Not now to the deck list's invitation to switch from SM-2 to FSRS-6, so it is not shown again." ;
+    rdfs:domain solid-memo:Preferences ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.21 for preferences format 5." .
+
+solid-memo:palette
+    a owl:ObjectProperty ;
+    rdfs:label "palette" ;
+    rdfs:comment "The colors the app is shown in, in the light theme and the dark: a concept of solid-memo:Palettes. A palette this reader does not know is kept as it is and shown in the app's standard colors." ;
+    rdfs:domain solid-memo:Preferences ;
+    rdfs:range skos:Concept ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.22 for preferences format 6." .
+
+solid-memo:textSize
+    a owl:ObjectProperty ;
+    rdfs:label "text size" ;
+    rdfs:comment "How large the app shows its text, against the browser's own text size: a concept of solid-memo:TextSizes." ;
+    rdfs:domain solid-memo:Preferences ;
+    rdfs:range skos:Concept ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.22 for preferences format 6." .
+
+solid-memo:connectedScreenSkipped
+    a owl:DatatypeProperty ;
+    rdfs:label "connected screen skipped" ;
+    rdfs:comment "Whether logging in goes straight to the app, without the screen that says the learner's Pod is connected. The screen is skipped only when the preferences of every one of the learner's instances say so. Absent means the screen is shown." ;
+    rdfs:domain solid-memo:Preferences ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.26. On preferences it is outside the preferences format, without a version bump: an older reader ignores it and an older writer keeps it." .
+
+#################### Palettes ####################
+
+solid-memo:basedOn
+    a owl:ObjectProperty ;
+    rdfs:label "based on" ;
+    rdfs:comment "The palette of solid-memo:Palettes a user's palette is based on, whose colors it has where it sets none. A palette this reader does not know is read as the standard one." ;
+    rdfs:domain solid-memo:Palette ;
+    rdfs:range skos:Concept ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for palette format 1." .
+
+solid-memo:lightColors
+    a owl:ObjectProperty ;
+    rdfs:label "light colors" ;
+    rdfs:comment "A user's palette's colors in the light theme." ;
+    rdfs:domain solid-memo:Palette ;
+    rdfs:range solid-memo:ColorSet ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for palette format 1." .
+
+solid-memo:darkColors
+    a owl:ObjectProperty ;
+    rdfs:label "dark colors" ;
+    rdfs:comment "A user's palette's colors in the dark theme." ;
+    rdfs:domain solid-memo:Palette ;
+    rdfs:range solid-memo:ColorSet ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for palette format 1." .
+
+solid-memo:backgroundColor
+    a owl:DatatypeProperty ;
+    rdfs:label "background color" ;
+    rdfs:comment "The page's background (the --bg color role), as an opaque sRGB color written #rrggbb." ;
+    rdfs:domain solid-memo:ColorSet ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for color set format 1." .
+
+solid-memo:surfaceColor
+    a owl:DatatypeProperty ;
+    rdfs:label "surface color" ;
+    rdfs:comment "The surface of cards, panels and fields (--surface), as an opaque sRGB color written #rrggbb." ;
+    rdfs:domain solid-memo:ColorSet ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for color set format 1." .
+
+solid-memo:sunkenSurfaceColor
+    a owl:DatatypeProperty ;
+    rdfs:label "sunken surface color" ;
+    rdfs:comment "A surface set into another, such as a table's header (--surface-sunken), as an opaque sRGB color written #rrggbb." ;
+    rdfs:domain solid-memo:ColorSet ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for color set format 1." .
+
+solid-memo:textColor
+    a owl:DatatypeProperty ;
+    rdfs:label "text color" ;
+    rdfs:comment "The text (--text), as an opaque sRGB color written #rrggbb." ;
+    rdfs:domain solid-memo:ColorSet ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for color set format 1." .
+
+solid-memo:mutedTextColor
+    a owl:DatatypeProperty ;
+    rdfs:label "muted text color" ;
+    rdfs:comment "Text that says less, such as a hint (--text-muted), as an opaque sRGB color written #rrggbb." ;
+    rdfs:domain solid-memo:ColorSet ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for color set format 1." .
+
+solid-memo:borderColor
+    a owl:DatatypeProperty ;
+    rdfs:label "border color" ;
+    rdfs:comment "The lines between parts of the page (--border), as an opaque sRGB color written #rrggbb." ;
+    rdfs:domain solid-memo:ColorSet ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for color set format 1." .
+
+solid-memo:fieldEdgeColor
+    a owl:DatatypeProperty ;
+    rdfs:label "field edge color" ;
+    rdfs:comment "A text field's edge (--control-border), as an opaque sRGB color written #rrggbb." ;
+    rdfs:domain solid-memo:ColorSet ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for color set format 1." .
+
+solid-memo:primaryColor
+    a owl:DatatypeProperty ;
+    rdfs:label "primary color" ;
+    rdfs:comment "The primary color, of rings, lines, focus rings and text in it (--primary), as an opaque sRGB color written #rrggbb." ;
+    rdfs:domain solid-memo:ColorSet ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for color set format 1." .
+
+solid-memo:primaryFillColor
+    a owl:DatatypeProperty ;
+    rdfs:label "primary fill color" ;
+    rdfs:comment "A primary button's fill (--primary-fill), as an opaque sRGB color written #rrggbb." ;
+    rdfs:domain solid-memo:ColorSet ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for color set format 1." .
+
+solid-memo:onPrimaryColor
+    a owl:DatatypeProperty ;
+    rdfs:label "on-primary color" ;
+    rdfs:comment "The text on a primary button's fill (--on-primary), as an opaque sRGB color written #rrggbb." ;
+    rdfs:domain solid-memo:ColorSet ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for color set format 1." .
+
+solid-memo:linkColor
+    a owl:DatatypeProperty ;
+    rdfs:label "link color" ;
+    rdfs:comment "A link's text (--link), as an opaque sRGB color written #rrggbb." ;
+    rdfs:domain solid-memo:ColorSet ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for color set format 1." .
+
+solid-memo:dangerColor
+    a owl:DatatypeProperty ;
+    rdfs:label "danger color" ;
+    rdfs:comment "Text that warns of a loss or tells of an error (--danger), as an opaque sRGB color written #rrggbb." ;
+    rdfs:domain solid-memo:ColorSet ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for color set format 1." .
+
+solid-memo:warningColor
+    a owl:DatatypeProperty ;
+    rdfs:label "warning color" ;
+    rdfs:comment "Text that asks for care (--warning-text), as an opaque sRGB color written #rrggbb." ;
+    rdfs:domain solid-memo:ColorSet ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for color set format 1." .
+
+solid-memo:grade0Color
+    a owl:DatatypeProperty ;
+    rdfs:label "grade 0 color" ;
+    rdfs:comment "The answer button of grade 0, Again (--grade-0), as an opaque sRGB color written #rrggbb." ;
+    rdfs:domain solid-memo:ColorSet ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for color set format 1." .
+
+solid-memo:grade1Color
+    a owl:DatatypeProperty ;
+    rdfs:label "grade 1 color" ;
+    rdfs:comment "The answer button of grade 1 (--grade-1), as an opaque sRGB color written #rrggbb." ;
+    rdfs:domain solid-memo:ColorSet ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for color set format 1." .
+
+solid-memo:grade2Color
+    a owl:DatatypeProperty ;
+    rdfs:label "grade 2 color" ;
+    rdfs:comment "The answer button of grade 2, Hard on the four-button scale (--grade-2), as an opaque sRGB color written #rrggbb." ;
+    rdfs:domain solid-memo:ColorSet ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for color set format 1." .
+
+solid-memo:grade3Color
+    a owl:DatatypeProperty ;
+    rdfs:label "grade 3 color" ;
+    rdfs:comment "The answer button of grade 3, Good on the four-button scale (--grade-3), as an opaque sRGB color written #rrggbb." ;
+    rdfs:domain solid-memo:ColorSet ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for color set format 1." .
+
+solid-memo:grade4Color
+    a owl:DatatypeProperty ;
+    rdfs:label "grade 4 color" ;
+    rdfs:comment "The answer button of grade 4 (--grade-4), as an opaque sRGB color written #rrggbb." ;
+    rdfs:domain solid-memo:ColorSet ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for color set format 1." .
+
+solid-memo:grade5Color
+    a owl:DatatypeProperty ;
+    rdfs:label "grade 5 color" ;
+    rdfs:comment "The answer button of grade 5, Easy (--grade-5), as an opaque sRGB color written #rrggbb." ;
+    rdfs:domain solid-memo:ColorSet ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.23 for color set format 1." .
+
+#################### Digest ####################
+
+solid-memo:receiptOf
+    a owl:ObjectProperty ;
+    rdfs:label "receipt of" ;
+    rdfs:comment "The document a receipt is about." ;
+    rdfs:domain solid-memo:DocumentReceipt ;
+    rdfs:range rdfs:Resource ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.9." .
+
+solid-memo:documentVersion
+    a owl:DatatypeProperty ;
+    rdfs:label "document version" ;
+    rdfs:comment "The version of the document a receipt is about: its ETag, as the pod gave it." ;
+    rdfs:domain solid-memo:DocumentReceipt ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.9." .
+
+solid-memo:conformedTo
+    a owl:DatatypeProperty ;
+    rdfs:label "conformed to" ;
+    rdfs:comment "At that version the document conformed to Solid Memo's shapes; the value names the rules (a hash of the shapes) it was checked by." ;
+    rdfs:domain solid-memo:DocumentReceipt ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.9." .
+
+solid-memo:latestFormat
+    a owl:DatatypeProperty ;
+    rdfs:label "latest format" ;
+    rdfs:comment "True when, at that version, nothing in the document was in an older format than the app that wrote the receipt knew." ;
+    rdfs:domain solid-memo:DocumentReceipt ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.9." .
+
+solid-memo:scheduleOf
+    a owl:ObjectProperty ;
+    rdfs:label "schedule of" ;
+    rdfs:comment "The deck a schedule is about." ;
+    rdfs:domain solid-memo:DeckSchedule ;
+    rdfs:range solid-memo:Deck ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.9." .
+
+solid-memo:cardsVersion
+    a owl:DatatypeProperty ;
+    rdfs:label "cards version" ;
+    rdfs:comment "The version (ETag) of the deck's cards document the schedule was computed from." ;
+    rdfs:domain solid-memo:DeckSchedule ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.9." .
+
+solid-memo:reviewsVersion
+    a owl:DatatypeProperty ;
+    rdfs:label "reviews version" ;
+    rdfs:comment "The version (ETag) of the deck's reviews document the schedule was computed from; \"absent\" when there was none." ;
+    rdfs:domain solid-memo:DeckSchedule ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.9." .
+
+solid-memo:scheduledDirection
+    a owl:ObjectProperty ;
+    rdfs:label "scheduled direction" ;
+    rdfs:comment "The study direction the schedule was computed for: a concept of solid-memo:StudyDirections." ;
+    rdfs:domain solid-memo:DeckSchedule ;
+    rdfs:range skos:Concept ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.9." .
+
+solid-memo:scheduledDayBoundaryHour
+    a owl:DatatypeProperty ;
+    rdfs:label "scheduled day boundary hour" ;
+    rdfs:comment "The day boundary hour the schedule's study days were counted with." ;
+    rdfs:domain solid-memo:DeckSchedule ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.9." .
+
+solid-memo:scheduledWith
+    a owl:ObjectProperty ;
+    rdfs:label "scheduled with" ;
+    rdfs:comment "The scheduler whose review states gave the due days the schedule counts: a concept of solid-memo:Schedulers." ;
+    rdfs:domain solid-memo:DeckSchedule ;
+    rdfs:range skos:Concept ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.21 for deck schedule format 2." .
+
+solid-memo:scheduledOn
+    a owl:DatatypeProperty ;
+    rdfs:label "scheduled on" ;
+    rdfs:comment "The study day (\"YYYY-MM-DD\") the schedule was computed on." ;
+    rdfs:domain solid-memo:DeckSchedule ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.9." .
+
+solid-memo:dueOnDay
+    a owl:DatatypeProperty ;
+    rdfs:label "due on day" ;
+    rdfs:comment "How many reviewed prompts fall due on one study day, as \"YYYY-MM-DD count\"; one value per day." ;
+    rdfs:domain solid-memo:DeckSchedule ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.9." .
+
+solid-memo:unreviewedCount
+    a owl:DatatypeProperty ;
+    rdfs:label "unreviewed count" ;
+    rdfs:comment "How many of the deck's prompts (cards in use, in each direction studied) were never reviewed." ;
+    rdfs:domain solid-memo:DeckSchedule ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.9." .
+
+solid-memo:reviewedOnDayCount
+    a owl:DatatypeProperty ;
+    rdfs:label "reviewed on day count" ;
+    rdfs:comment "How many reviews were made on the study day the schedule was computed on." ;
+    rdfs:domain solid-memo:DeckSchedule ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.9." .
+
+solid-memo:introducedOnDayCount
+    a owl:DatatypeProperty ;
+    rdfs:label "introduced on day count" ;
+    rdfs:comment "How many prompts were first reviewed on the study day the schedule was computed on." ;
+    rdfs:domain solid-memo:DeckSchedule ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.9." .
+
+solid-memo:summaryOf
+    a owl:ObjectProperty ;
+    rdfs:label "summary of" ;
+    rdfs:comment "The answer log's month document a month summary is about." ;
+    rdfs:domain solid-memo:MonthSummary ;
+    rdfs:range rdfs:Resource ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.25 for month summary format 1." .
+
+solid-memo:summarizedVersion
+    a owl:DatatypeProperty ;
+    rdfs:label "summarized version" ;
+    rdfs:comment "The version (ETag) of the month's document the summary was made from." ;
+    rdfs:domain solid-memo:MonthSummary ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.25 for month summary format 1." .
+
+solid-memo:studyDayCounts
+    a owl:DatatypeProperty ;
+    rdfs:label "study day counts" ;
+    rdfs:comment "What one study day of the month with answers came to, as \"YYYY-MM-DD answers introduced reviews lapses\": its answers, the prompts it introduced, its scored reviews and those below grade 3; one value per day." ;
+    rdfs:domain solid-memo:MonthSummary ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.25 for month summary format 1." .
+
+solid-memo:youngReviewCount
+    a owl:DatatypeProperty ;
+    rdfs:label "young review count" ;
+    rdfs:comment "How many of the month's scored reviews were of prompts at an interval below 21 days." ;
+    rdfs:domain solid-memo:MonthSummary ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.25 for month summary format 1." .
+
+solid-memo:youngRecalledCount
+    a owl:DatatypeProperty ;
+    rdfs:label "young recalled count" ;
+    rdfs:comment "How many of the month's scored reviews of young prompts were remembered (grade 3 or above)." ;
+    rdfs:domain solid-memo:MonthSummary ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.25 for month summary format 1." .
+
+solid-memo:recallSecondsCount
+    a owl:DatatypeProperty ;
+    rdfs:label "recall seconds count" ;
+    rdfs:comment "How many of the month's recalled answers with a recorded time (recallMillis and gradeMillis) took a whole number of seconds, as \"seconds count\", a time of 60 seconds or more counted at 60; one value per number of seconds." ;
+    rdfs:domain solid-memo:MonthSummary ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.25 for month summary format 1." .
+
+#################### Course ####################
+
+solid-memo:theory
+    a owl:DatatypeProperty ;
+    rdfs:subPropertyOf schema:text ;
+    rdfs:label "theory" ;
+    rdfs:comment "The short piece of theory a course step teaches, read before its questions: language-tagged text, one per language." ;
+    rdfs:domain solid-memo:Step ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.14." .
+
+solid-memo:checkedBy
+    a owl:ObjectProperty ;
+    rdfs:label "checked by" ;
+    rdfs:comment "A card of the same release, asked as a multiple-choice question right after the step's theory; answering it puts it among the cards the learner studies. A card is checked by one step at most." ;
+    rdfs:domain solid-memo:Step ;
+    rdfs:range solid-memo:Card ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.14." .
+
+solid-memo:reviewQuestion
+    a owl:ObjectProperty ;
+    rdfs:label "review question" ;
+    rdfs:comment "A card of the same release asked only in the chapter's final review, next to every card its steps check." ;
+    rdfs:domain solid-memo:Chapter ;
+    rdfs:range solid-memo:Card ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.14." .
+
+solid-memo:distractorText
+    a owl:DatatypeProperty ;
+    rdfs:subPropertyOf schema:text ;
+    rdfs:label "distractor text" ;
+    rdfs:comment "The text of a wrong option: untagged, its language unknown, or language-tagged, one per language, as the back of its card is." ;
+    rdfs:domain solid-memo:Distractor ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.14." .
+
+solid-memo:distractorNote
+    a owl:DatatypeProperty ;
+    rdfs:label "distractor note" ;
+    rdfs:comment "Why the option is wrong, shown to a learner who chose it: language-tagged text, one per language." ;
+    rdfs:domain solid-memo:Distractor ;
+    rdfs:range xsd:string ;
+    rdfs:seeAlso schema:answerExplanation ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.14." .
+
+solid-memo:completedChapter
+    a owl:ObjectProperty ;
+    rdfs:label "completed chapter" ;
+    rdfs:comment "A chapter of the course the deck was copied from (its prov:wasDerivedFrom release) whose final review the learner has passed." ;
+    rdfs:domain solid-memo:Deck ;
+    rdfs:range solid-memo:Chapter ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.14. On a deck it is outside the deck format, without a version bump: an older reader ignores it and an older writer keeps it." .
+
+#################### Drafts and releases ####################
+
+solid-memo:releaseDraft
+    a owl:ObjectProperty ;
+    rdfs:label "release draft" ;
+    rdfs:comment "A draft of a deck or course release that the catalogue's owner is writing in the same instance: the draft's release document, whose subject is the draft deck itself, as a release is its document. The draft becomes a release when it is published, and then names it with releasedAs." ;
+    rdfs:domain dcat:Catalog ;
+    rdfs:range solid-memo:Deck ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.18. It belongs to no shape: CatalogV1 does not own it, so the catalogue format did not move." .
+
+solid-memo:publishedRelease
+    a owl:ObjectProperty ;
+    rdfs:label "published release" ;
+    rdfs:comment "A release (a dcat:Dataset, one document) that the catalogue's owner published from this instance, frozen once published. Where the catalogue is readable, it is where a reader finds the releases an author published." ;
+    rdfs:domain dcat:Catalog ;
+    rdfs:range dcat:Dataset ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.18. It belongs to no shape: CatalogV1 does not own it, so the catalogue format did not move." .
+
+solid-memo:releasedAs
+    a owl:ObjectProperty ;
+    rdfs:label "released as" ;
+    rdfs:comment "On a draft deck: the release it was published as. A draft that states it is released, and is no longer edited; absent, the draft is still being written." ;
+    rdfs:domain solid-memo:Deck ;
+    rdfs:range dcat:Dataset ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.18 for draft deck format 1." .
+
+#################### Answer log ####################
+
+solid-memo:answeredDeck
+    a owl:ObjectProperty ;
+    rdfs:label "answered deck" ;
+    rdfs:comment "The deck the answer was given in: its catalog entry, which may since have been removed." ;
+    rdfs:domain solid-memo:Answer ;
+    rdfs:range solid-memo:Deck ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.10." .
+
+solid-memo:answeredCard
+    a owl:ObjectProperty ;
+    rdfs:label "answered card" ;
+    rdfs:comment "The card the answer was given to, which may since have been removed." ;
+    rdfs:domain solid-memo:Answer ;
+    rdfs:range solid-memo:Card ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.10." .
+
+solid-memo:answeredDirection
+    a owl:ObjectProperty ;
+    rdfs:label "answered direction" ;
+    rdfs:comment "The way the card was asked: a concept of solid-memo:StudyDirections." ;
+    rdfs:domain solid-memo:Answer ;
+    rdfs:range skos:Concept ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.10." .
+
+solid-memo:grade
+    a owl:DatatypeProperty ;
+    rdfs:label "grade" ;
+    rdfs:comment "The SM-2 quality of the answer, 0 to 5, whichever answer scale gave it; below 3 means the card was forgotten." ;
+    rdfs:domain solid-memo:Answer ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.10." .
+
+solid-memo:answeredAt
+    a owl:DatatypeProperty ;
+    rdfs:label "answered at" ;
+    rdfs:comment "When the answer was given." ;
+    rdfs:domain solid-memo:Answer ;
+    rdfs:range xsd:dateTime ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.10." .
+
+solid-memo:answeredOn
+    a owl:DatatypeProperty ;
+    rdfs:label "answered on" ;
+    rdfs:comment "The study day the answer counts towards, as a plain \"YYYY-MM-DD\" string, fixed when it was given, so a later change of the day boundary does not move it." ;
+    rdfs:domain solid-memo:Answer ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.10." .
+
+solid-memo:priorIntervalDays
+    a owl:DatatypeProperty ;
+    rdfs:label "prior interval (days)" ;
+    rdfs:comment "The prompt's interval before the answer; absent on a prompt's first answer, which introduced it." ;
+    rdfs:domain solid-memo:Answer ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.10." .
+
+solid-memo:nextIntervalDays
+    a owl:DatatypeProperty ;
+    rdfs:label "next interval (days)" ;
+    rdfs:comment "The prompt's interval after the answer: the days until it is due again." ;
+    rdfs:domain solid-memo:Answer ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.10." .
+
+solid-memo:answerMode
+    a owl:ObjectProperty ;
+    rdfs:label "answer mode" ;
+    rdfs:comment "How the prompt was answered: a concept of solid-memo:AnswerModes. Absent means recalled, as every answer was before 1.14." ;
+    rdfs:domain solid-memo:Answer ;
+    rdfs:range skos:Concept ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.14. Outside the answer format's version: an older reader ignores it." .
+
+solid-memo:chosenDistractor
+    a owl:ObjectProperty ;
+    rdfs:label "chosen distractor" ;
+    rdfs:comment "The wrong option chosen, when a multiple-choice answer was wrong. Absent when the right option was chosen." ;
+    rdfs:domain solid-memo:Answer ;
+    rdfs:range solid-memo:Distractor ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.14. Outside the answer format's version: an older reader ignores it." .
+
+solid-memo:recallMillis
+    a owl:DatatypeProperty ;
+    rdfs:label "recall time (milliseconds)" ;
+    rdfs:comment "How long the learner took to recall: from the prompt shown to the answer revealed, or to the option chosen in a multiple-choice question, not counting the time the app was hidden. Absent when it was not measured, or took longer than the app records." ;
+    rdfs:domain solid-memo:Answer ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.19. Outside the answer format's version: an older reader ignores it." .
+
+solid-memo:gradeMillis
+    a owl:DatatypeProperty ;
+    rdfs:label "grading time (milliseconds)" ;
+    rdfs:comment "How long the learner took to grade: from the answer revealed to the grade given, not counting the time the app was hidden. Absent when it was not measured, took longer than the app records, or the answer was not graded by the learner, as a multiple-choice one is not." ;
+    rdfs:domain solid-memo:Answer ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.19. Outside the answer format's version: an older reader ignores it." .
+
+solid-memo:priorDue
+    a owl:DatatypeProperty ;
+    rdfs:label "prior due" ;
+    rdfs:comment "The study day the prompt was due before the answer, as a plain \"YYYY-MM-DD\" string, as solid-memo:due is; absent on a prompt's first answer, which introduced it." ;
+    rdfs:domain solid-memo:Answer ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.19. Outside the answer format's version: an older reader ignores it." .
+
+solid-memo:utcOffsetMinutes
+    a owl:DatatypeProperty ;
+    rdfs:label "UTC offset (minutes)" ;
+    rdfs:comment "The answering device's offset from UTC when the answer was given, in minutes, positive east of Greenwich (120 in Central European Summer Time), so that the local hour of solid-memo:answeredAt can be told." ;
+    rdfs:domain solid-memo:Answer ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.19. Outside the answer format's version: an older reader ignores it." .
+
+#################### Concept schemes ####################
+
+solid-memo:StudyDirections
+    a skos:ConceptScheme ;
+    dcterms:title "Study directions"@en ;
+    skos:definition "The ways a deck can be studied."@en ;
+    skos:hasTopConcept solid-memo:frontToBack ,
+                       solid-memo:backToFront ,
+                       solid-memo:bidirectional ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.6." .
+
+solid-memo:frontToBack
+    a skos:Concept ;
+    skos:prefLabel "Front to back"@en ;
+    skos:definition "Each card is shown by its front and answered with its back."@en ;
+    skos:notation "front-to-back" ;
+    skos:inScheme solid-memo:StudyDirections ;
+    skos:topConceptOf solid-memo:StudyDirections ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.6." .
+
+solid-memo:backToFront
+    a skos:Concept ;
+    skos:prefLabel "Back to front"@en ;
+    skos:definition "Each card is shown by its back and answered with its front."@en ;
+    skos:notation "back-to-front" ;
+    skos:inScheme solid-memo:StudyDirections ;
+    skos:topConceptOf solid-memo:StudyDirections ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.6." .
+
+solid-memo:bidirectional
+    a skos:Concept ;
+    skos:prefLabel "Both ways"@en ;
+    skos:definition "Each card is asked both ways, each way scheduled on its own."@en ;
+    skos:notation "bidirectional" ;
+    skos:inScheme solid-memo:StudyDirections ;
+    skos:topConceptOf solid-memo:StudyDirections ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.6." .
+
+solid-memo:InvalidDataPolicies
+    a skos:ConceptScheme ;
+    dcterms:title "Invalid data policies"@en ;
+    skos:definition "What the app does when data in an instance does not conform to its shapes."@en ;
+    skos:hasTopConcept solid-memo:blockInstance ,
+                       solid-memo:blockSubject ,
+                       solid-memo:warnOnly ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.6." .
+
+solid-memo:blockInstance
+    a skos:Concept ;
+    skos:prefLabel "Block the instance"@en ;
+    skos:definition "Any invalid data stops the app from using the instance until it is repaired."@en ;
+    skos:notation "block-instance" ;
+    skos:inScheme solid-memo:InvalidDataPolicies ;
+    skos:topConceptOf solid-memo:InvalidDataPolicies ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.6." .
+
+solid-memo:blockSubject
+    a skos:Concept ;
+    skos:prefLabel "Set invalid data aside"@en ;
+    skos:definition "Decks with invalid data are set aside until they are repaired; everything else keeps working. The default."@en ;
+    skos:notation "block-subject" ;
+    skos:inScheme solid-memo:InvalidDataPolicies ;
+    skos:topConceptOf solid-memo:InvalidDataPolicies ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.6." .
+
+solid-memo:warnOnly
+    a skos:Concept ;
+    skos:prefLabel "Warn only"@en ;
+    skos:definition "Invalid data is reported, and the app keeps working with it."@en ;
+    skos:notation "warn-only" ;
+    skos:inScheme solid-memo:InvalidDataPolicies ;
+    skos:topConceptOf solid-memo:InvalidDataPolicies ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.6." .
+
+solid-memo:Themes
+    a skos:ConceptScheme ;
+    dcterms:title "Themes"@en ;
+    skos:definition "How the app is shown: light, dark, or as the browser prefers."@en ;
+    skos:hasTopConcept solid-memo:systemTheme ,
+                       solid-memo:lightTheme ,
+                       solid-memo:darkTheme ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.11." .
+
+solid-memo:systemTheme
+    a skos:Concept ;
+    skos:prefLabel "As the browser prefers"@en ;
+    skos:definition "The app is light or dark as the browser or operating system prefers, following it when it changes. The default."@en ;
+    skos:notation "system" ;
+    skos:inScheme solid-memo:Themes ;
+    skos:topConceptOf solid-memo:Themes ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.11." .
+
+solid-memo:lightTheme
+    a skos:Concept ;
+    skos:prefLabel "Light"@en ;
+    skos:definition "The app is shown light, whatever the browser prefers."@en ;
+    skos:notation "light" ;
+    skos:inScheme solid-memo:Themes ;
+    skos:topConceptOf solid-memo:Themes ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.11." .
+
+solid-memo:darkTheme
+    a skos:Concept ;
+    skos:prefLabel "Dark"@en ;
+    skos:definition "The app is shown dark, whatever the browser prefers."@en ;
+    skos:notation "dark" ;
+    skos:inScheme solid-memo:Themes ;
+    skos:topConceptOf solid-memo:Themes ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.11." .
+
+solid-memo:Palettes
+    a skos:ConceptScheme ;
+    dcterms:title "Palettes"@en ;
+    skos:definition "The sets of colors the app is shown in, each for what it does for the reader, each in the light theme and the dark."@en ;
+    skos:hasTopConcept solid-memo:standardPalette ,
+                       solid-memo:highContrastPalette ,
+                       solid-memo:colorVisionPalette ,
+                       solid-memo:parchmentPalette ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.22." .
+
+solid-memo:standardPalette
+    a skos:Concept ;
+    skos:prefLabel "Standard"@en ;
+    skos:definition "The app's own colors, the answer buttons from red to green. The default."@en ;
+    skos:notation "standard" ;
+    skos:inScheme solid-memo:Palettes ;
+    skos:topConceptOf solid-memo:Palettes ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.22." .
+
+solid-memo:highContrastPalette
+    a skos:Concept ;
+    skos:prefLabel "High contrast"@en ;
+    skos:definition "Black on white, or white on black: text at a contrast of 7:1 or more, and the edges of fields at 4.5:1 or more."@en ;
+    skos:notation "high-contrast" ;
+    skos:inScheme solid-memo:Palettes ;
+    skos:topConceptOf solid-memo:Palettes ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.22." .
+
+solid-memo:colorVisionPalette
+    a skos:Concept ;
+    skos:prefLabel "Color-blind friendly"@en ;
+    skos:definition "The standard surfaces, with meaning moved off red and green onto blue, orange and vermilion, for readers who tell red from green poorly."@en ;
+    skos:notation "color-vision" ;
+    skos:inScheme solid-memo:Palettes ;
+    skos:topConceptOf solid-memo:Palettes ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.22." .
+
+solid-memo:parchmentPalette
+    a skos:Concept ;
+    skos:prefLabel "Parchment (low glare)"@en ;
+    skos:definition "Warm surfaces darker than white in the light theme, and warm browns in the dark, for readers whom a bright page dazzles."@en ;
+    skos:notation "parchment" ;
+    skos:inScheme solid-memo:Palettes ;
+    skos:topConceptOf solid-memo:Palettes ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.22." .
+
+solid-memo:TextSizes
+    a skos:ConceptScheme ;
+    dcterms:title "Text sizes"@en ;
+    skos:definition "How large the app shows its text, from the browser's own text size up."@en ;
+    skos:hasTopConcept solid-memo:defaultTextSize ,
+                       solid-memo:largeTextSize ,
+                       solid-memo:largerTextSize ,
+                       solid-memo:largestTextSize ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.22." .
+
+solid-memo:defaultTextSize
+    a skos:Concept ;
+    skos:prefLabel "Default"@en ;
+    skos:definition "The text at the browser's own size. The default."@en ;
+    skos:notation "default" ;
+    skos:inScheme solid-memo:TextSizes ;
+    skos:topConceptOf solid-memo:TextSizes ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.22." .
+
+solid-memo:largeTextSize
+    a skos:Concept ;
+    skos:prefLabel "Large"@en ;
+    skos:definition "The text at 112.5% of the browser's own size."@en ;
+    skos:notation "large" ;
+    skos:inScheme solid-memo:TextSizes ;
+    skos:topConceptOf solid-memo:TextSizes ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.22." .
+
+solid-memo:largerTextSize
+    a skos:Concept ;
+    skos:prefLabel "Larger"@en ;
+    skos:definition "The text at 125% of the browser's own size."@en ;
+    skos:notation "larger" ;
+    skos:inScheme solid-memo:TextSizes ;
+    skos:topConceptOf solid-memo:TextSizes ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.22." .
+
+solid-memo:largestTextSize
+    a skos:Concept ;
+    skos:prefLabel "Largest"@en ;
+    skos:definition "The text at 150% of the browser's own size."@en ;
+    skos:notation "largest" ;
+    skos:inScheme solid-memo:TextSizes ;
+    skos:topConceptOf solid-memo:TextSizes ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.22." .
+
+solid-memo:AnswerModes
+    a skos:ConceptScheme ;
+    dcterms:title "Answer modes"@en ;
+    skos:definition "How a prompt is answered during study."@en ;
+    skos:hasTopConcept solid-memo:recall ,
+                       solid-memo:multipleChoice ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.14." .
+
+solid-memo:recall
+    a skos:Concept ;
+    skos:prefLabel "Recall"@en ;
+    skos:definition "The learner recalls the answer, sees it, and grades how well they knew it."@en ;
+    skos:notation "recall" ;
+    skos:inScheme solid-memo:AnswerModes ;
+    skos:topConceptOf solid-memo:AnswerModes ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.14." .
+
+solid-memo:multipleChoice
+    a skos:Concept ;
+    skos:prefLabel "Multiple choice"@en ;
+    skos:definition "The learner chooses the answer among the card's back and its distractors; the choice is graded right or wrong."@en ;
+    skos:notation "multiple-choice" ;
+    skos:inScheme solid-memo:AnswerModes ;
+    skos:topConceptOf solid-memo:AnswerModes ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.14." .
+
+solid-memo:TextFormats
+    a skos:ConceptScheme ;
+    dcterms:title "Text formats"@en ;
+    skos:definition "How the texts of a card, a course step or a course chapter are written."@en ;
+    skos:hasTopConcept solid-memo:plainText ,
+                       solid-memo:markdown ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.15." .
+
+solid-memo:plainText
+    a skos:Concept ;
+    skos:prefLabel "Plain text"@en ;
+    skos:definition "Text shown as written. The same as no text format; stated where a person chose it."@en ;
+    skos:notation "plain" ;
+    skos:inScheme solid-memo:TextFormats ;
+    skos:topConceptOf solid-memo:TextFormats ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.15." .
+
+solid-memo:markdown
+    a skos:Concept ;
+    skos:prefLabel "Markdown"@en ;
+    skos:definition "CommonMark 0.31.2, with GitHub Flavored Markdown pipe tables as its one extension."@en ;
+    skos:notation "markdown" ;
+    skos:broadMatch <https://www.iana.org/assignments/media-types/text/markdown> ;
+    skos:inScheme solid-memo:TextFormats ;
+    skos:topConceptOf solid-memo:TextFormats ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.15." .
+
+solid-memo:Schedulers
+    a skos:ConceptScheme ;
+    dcterms:title "Schedulers"@en ;
+    skos:definition "The spaced-repetition algorithms a review state's fields may belong to."@en ;
+    skos:hasTopConcept solid-memo:sm2 ,
+                       solid-memo:fsrs6 ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.16." .
+
+solid-memo:sm2
+    a skos:Concept ;
+    skos:prefLabel "SM-2"@en ;
+    skos:definition "The SuperMemo 2 algorithm: an ease factor, an interval in days, a count of successful repetitions in a row and a due day. The same as no scheduler."@en ;
+    skos:notation "sm2" ;
+    skos:inScheme solid-memo:Schedulers ;
+    skos:topConceptOf solid-memo:Schedulers ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.16." .
+
+solid-memo:fsrs6
+    a skos:Concept ;
+    skos:prefLabel "FSRS-6"@en ;
+    skos:definition "The Free Spaced Repetition Scheduler, version 6: a memory stability in days, a difficulty from 1 to 10 and a due day, chosen so that the chance of recalling the card on that day is the desired retention."@en ;
+    skos:notation "fsrs6" ;
+    skos:inScheme solid-memo:Schedulers ;
+    skos:topConceptOf solid-memo:Schedulers ;
+    rdfs:isDefinedBy <> ;
+    skos:historyNote "Added in 1.21." .
