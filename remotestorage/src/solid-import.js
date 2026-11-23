@@ -17,6 +17,10 @@ export async function importSolid({fetcher,webId,classes,root,store,fetch,exclud
   };
   const profile=await readGraph(webId.split('#')[0]);
   const indexes=['privateTypeIndex','publicTypeIndex'].flatMap(key=>profile.getObjects(namedNode(webId),namedNode(solid+key),null).map(t=>t.value));
+  for(const preferences of profile.getObjects(namedNode(webId),namedNode('http://www.w3.org/ns/pim/space#preferencesFile'),null)) {
+    const graph=await readGraph(preferences.value);
+    indexes.push(...graph.getObjects(namedNode(webId),namedNode(solid+'privateTypeIndex'),null).map(t=>t.value));
+  }
   const registrations=[];
   for(const index of [...new Set(indexes)]) {
     const graph=await readGraph(index);

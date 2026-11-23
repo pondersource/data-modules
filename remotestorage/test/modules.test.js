@@ -115,3 +115,19 @@ test('a refused public deletion keeps the sharing record available for retry',as
  await assert.rejects(api.unpublish(url),/refused/);
  assert.equal(await api.getPublicURL(url),'https://public.example/recipe');
 });
+
+
+test('resource records keep legacy paths and use bounded names for long native URLs',async()=>{
+ const {createResourceStore}=await import('../src/resource-store.js');
+ const data=new Map(),client={declareType(){},getObject:async key=>data.get(key),storeObject:async(type,key,value)=>data.set(key,value),remove:async key=>data.delete(key),getListing:async prefix=>Object.fromEntries([...data.keys()].filter(key=>key.startsWith(prefix)).map(key=>[key.slice(prefix.length),{}]))};
+ const store=createResourceStore(client,'test'),legacy='https://example.test/old';
+ const oldKey='_rs/resources/'+encodeURIComponent(legacy);
+ data.set(oldKey,{url:legacy,unknown:'retain',resource:{kind:'rdf',etag:'"1"',triples:[]}});
+ await store.set(legacy,{kind:'rdf',etag:'"2"',triples:[]});assert.equal(data.get(oldKey).unknown,'retain');
+ const long='https://example.test/'+ 'long-native-path/'.repeat(50)+'index.ttl';
+ await store.set(long,{kind:'file',etag:'"3"',contentType:'image/png',bytes:new Uint8Array([0,255,1])});
+ assert.ok([...data.keys()].every(key=>key.split('/').pop().length<180));
+ assert.deepEqual([...await store.urls()].sort(),[legacy,long].sort());
+ assert.deepEqual((await store.get(long)).bytes,new Uint8Array([0,255,1]));
+ await store.delete(long);assert.deepEqual(await store.urls(),[legacy]);
+});

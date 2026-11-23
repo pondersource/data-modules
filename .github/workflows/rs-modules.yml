@@ -1,9 +1,11 @@
 name: remoteStorage data modules
 on:
   push:
-    paths: ['remotestorage/**', '.github/workflows/rs-modules.yml']
+    paths: ['remotestorage/**', 'contacts/src/**', 'bookmarks/**/src/**', 'chats/**/src/**', 'tasks/vanilla/src/**', 'utils/rdflib/src/**', '.github/workflows/rs-modules.yml']
   pull_request:
-    paths: ['remotestorage/**', '.github/workflows/rs-modules.yml']
+    paths: ['remotestorage/**', 'contacts/src/**', 'bookmarks/**/src/**', 'chats/**/src/**', 'tasks/vanilla/src/**', 'utils/rdflib/src/**', '.github/workflows/rs-modules.yml']
+permissions:
+  contents: read
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -11,8 +13,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
       - run: npm ci --prefix remotestorage
       - run: npm test --prefix remotestorage
       - run: npm run build --prefix remotestorage
-      - run: git diff --exit-code -- remotestorage/dist/modules.js
+      - run: npx playwright install --with-deps chromium
+        working-directory: remotestorage
+      - run: npm run test:browser --prefix remotestorage
+      - run: git diff --exit-code -- remotestorage/dist

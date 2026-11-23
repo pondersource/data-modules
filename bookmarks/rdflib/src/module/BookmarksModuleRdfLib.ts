@@ -44,6 +44,8 @@ export class BookmarksModuleRdfLib implements BookmarksModule {
   }
 
   async listBookmarks(storageUrl: string): Promise<Bookmark[]> {
+    // Container membership can change when this module creates another document.
+    await this.fetcher.load(storageUrl, { force: true });
     if (await this.support.isContainer(storageUrl)) {
       const containerNode = sym(storageUrl);
       const contents = new ContainerQuery(

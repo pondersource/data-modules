@@ -278,7 +278,11 @@ export async function fetchContainer(
   authenticatedFetcher: typeof globalThis.fetch,
 ): Promise<Interpretation> {
   const jsonld = await getJsonLd(uri, authenticatedFetcher);
-  const docs = jsonld.map(entry => entry['@id']);
+  const members = jsonld.flatMap(entry => {
+    const values = entry['http://www.w3.org/ns/ldp#contains'];
+    return Array.isArray(values) ? values.map(value => value['@id']).filter(value => typeof value === 'string') : [];
+  });
+  const docs = members.length ? members : jsonld.map(entry => entry['@id']);
   const ret: Interpretation = {
     issues: {},
   };

@@ -38,6 +38,44 @@ afterEach(() => {
 
 describe("Bookmark", () => {
 
+    it("discovers the default Pod from the scoped profile without anonymous requests or erasing an existing document", async () => {
+        const root = "https://fake-pod.net/";
+        const target = `${root}bookmarks/index.ttl`;
+        const typeIndex = `${root}settings/privateTypeIndex.ttl`;
+        jest.spyOn(TypeIndexHelper, "getFromTypeIndex").mockResolvedValue({ instanceContainers: [], instances: [] });
+        const anonymousFetch = jest.spyOn(globalThis, "fetch").mockRejectedValue(new Error("unscoped fetch"));
+        session.fetch.mockImplementation(async (input, init) => {
+            const url = String(input);
+            const body = url.includes("profile/card")
+                ? `<#me> <http://www.w3.org/ns/pim/space#storage> <${root}>; <http://www.w3.org/ns/solid/terms#privateTypeIndex> <${typeIndex}>.`
+                : url === target ? '<#existing> <https://example.test/unknown> "keep".' : '';
+            const response = new Response(init?.method === "PUT" ? '' : body, { headers: { "Content-Type": "text/turtle" } });
+            Object.defineProperty(response, "url", { value: url.split('#')[0] });
+            return response;
+        });
+
+        expect(await Bookmark.getAllBookmarkDocUrls(session.fetch, session.info.webId!)).toEqual([target]);
+        expect(anonymousFetch).not.toHaveBeenCalled();
+        expect(session.fetch.mock.calls.filter(([, init]) => init?.method && init.method !== "GET").map(([url]) => url)).toEqual([typeIndex]);
+    });
+
+    it("propagates a denied default document instead of overwriting it", async () => {
+        const root = "https://fake-pod.net/";
+        jest.spyOn(TypeIndexHelper, "getFromTypeIndex").mockResolvedValue({ instanceContainers: [], instances: [] });
+        session.fetch.mockImplementation(async (input) => {
+            const url = String(input);
+            const profile = url.includes("profile/card");
+            const response = new Response(profile ? `<#me> <http://www.w3.org/ns/pim/space#storage> <${root}>.` : "denied", {
+                status: profile ? 200 : 403, headers: { "Content-Type": "text/turtle" },
+            });
+            Object.defineProperty(response, "url", { value: url.split('#')[0] });
+            return response;
+        });
+
+        await expect(Bookmark.getAllBookmarkDocUrls(session.fetch, session.info.webId!)).rejects.toMatchObject({ response: { status: 403 } });
+        expect(session.fetch.mock.calls.every(([, init]) => !init?.method || init.method === "GET")).toBe(true);
+    });
+
     it("The getIndexUrl method should return index url with registry exists in typeIndex", async () => {
         const podUrls = ["https://fake-pod.net/"];
         const expectedIndexUrl = ["https://fake-pod.net/bookmarks/index.ttl"];

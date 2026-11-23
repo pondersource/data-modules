@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+import {nativeSolidView} from './native-solid.js';
 import { publicResources } from './public-resources.js';
 import LegacyFlashcards from './flashcards-legacy.js';
 import { importSolid } from './solid-import.js';
@@ -8,13 +9,14 @@ import { parseRecipes } from './recipes.js';
 import { parseMovies } from './movies.ts';
 export { parseRecipes,parseMovies };
 /** The module owns the storage API; apps receive only its domain and RDF interfaces. */
-function dataModule(name, classes, helpers={}) {
+export function dataModule(name, classes, helpers={}, domain=()=>({})) {
   return {name,builder(privateClient,publicClient) {
     const store=createResourceStore(privateClient,name);
     const root='https://'+name+'.storage.pondersource.invalid/';
     const fetch=createLocalPod({root,store,newEtag:()=> '"'+crypto.randomUUID()+'"'});
     privateClient.declareType('migration',{type:'object',properties:{complete:{type:'boolean'}},required:['complete']});
-    return {exports:{...helpers,...publicResources({privateClient,publicClient,store,root}),
+    const api={...helpers,
+      nativeSolid:context=>nativeSolidView(context,helpers,domain,mode=>privateClient.storage?.access ? privateClient.storage.access.checkPermission(name,mode) : true),...publicResources({privateClient,publicClient,store,root}),
       async migrateSolid(fetcher,webId,excludePrefix) {
         if ((await privateClient.getObject('_rs/migration'))?.complete) return;
         await importSolid({fetcher,webId,classes,root,store,fetch,excludePrefix});
@@ -24,14 +26,21 @@ function dataModule(name, classes, helpers={}) {
       root,webId:root+'profile/card#me',classes,fetch,
       // Solid Memo's existing RDF adapters can use the exact resource-store contract.
       resources:store,
+      onChange(callback) {
+        if (!privateClient.on) throw Error('This client does not provide change events');
+        privateClient.on('change',callback);
+        return ()=>privateClient.removeEventListener('change',callback);
+      },
       async initialize() {
         const profile=root+'profile/card';
         if (await store.get(profile)) return;
         await fetch(root+'settings/privateTypeIndex',{method:'PUT',headers:{'Content-Type':'text/turtle'},body:'<> a <http://www.w3.org/ns/solid/terms#TypeIndex>, <http://www.w3.org/ns/solid/terms#UnlistedDocument>.'});
+        await fetch(root+'settings/preferences',{method:'PUT',headers:{'Content-Type':'text/turtle'},body:`<${root}profile/card#me> <http://www.w3.org/ns/solid/terms#privateTypeIndex> <${root}settings/privateTypeIndex>.`});
         await fetch(profile,{method:'PUT',headers:{'Content-Type':'text/turtle','If-None-Match':'*'},body:
-          `<#me> a <http://xmlns.com/foaf/0.1/Person>; <http://xmlns.com/foaf/0.1/name> "My storage"; <http://www.w3.org/ns/pim/space#storage> <${root}>; <http://www.w3.org/ns/solid/terms#privateTypeIndex> <${root}settings/privateTypeIndex>.`});
+          `<#me> a <http://xmlns.com/foaf/0.1/Person>; <http://xmlns.com/foaf/0.1/name> "My storage"; <http://www.w3.org/ns/pim/space#storage> <${root}>; <http://www.w3.org/ns/pim/space#preferencesFile> <${root}settings/preferences>; <http://www.w3.org/ns/solid/terms#privateTypeIndex> <${root}settings/privateTypeIndex>.`});
       }
-    }};
+    };
+    return {exports:Object.assign(api,domain(api))};
   }};
 }
 export const Recipes = dataModule('recipes',['https://schema.org/Recipe'],{parseRecipes});

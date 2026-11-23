@@ -2,9 +2,38 @@
   "name": "@pondersource/rs-data-modules",
   "version": "0.1.0",
   "type": "module",
-  "exports": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./domains": {
+      "browser": "./dist/domains.browser.mjs",
+      "default": "./dist/domains.mjs"
+    }
+  },
   "license": "MIT",
-  "scripts": {"test": "node --test test/*.test.js", "build": "esbuild src/index.js --bundle --format=iife --global-name=PonderSourceModules --target=es2020 --outfile=dist/modules.js"},
-  "dependencies": {"n3": "1.26.0"},
-  "devDependencies": {"esbuild": "^0.25.0", "typescript": "^5.9.0"}
+  "scripts": {
+    "test": "npm run build && node --test --test-force-exit test/*.test.js",
+    "build": "node build.mjs",
+    "test:browser": "node --test test/browser.test.cjs"
+  },
+  "dependencies": {
+    "@inrupt/solid-client": "1.30.2",
+    "@inrupt/solid-client-authn-browser": "1.17.5",
+    "@inrupt/vocab-common-rdf": "1.0.5",
+    "@ldo/connected": "1.0.0-alpha.24",
+    "@ldo/connected-solid": "1.0.0-alpha.24",
+    "@ldo/ldo": "1.0.0-alpha.21",
+    "@rdfjs/data-model": "1.3.4",
+    "@rezasoltani/solid-typeindex-support": "0.0.7",
+    "ical.js": "2.2.1",
+    "n3": "1.26.0",
+    "rdflib": "2.3.6",
+    "remotestorage-module-bookmarks": "0.3.2",
+    "short-unique-id": "5.3.2",
+    "uuid": "11.1.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "playwright": "1.65.1",
+    "typescript": "^5.9.0"
+  }
 }
