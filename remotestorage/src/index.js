@@ -2,6 +2,7 @@
 import {nativeSolidView} from './native-solid.js';
 import { publicResources } from './public-resources.js';
 import LegacyFlashcards from './flashcards-legacy.js';
+import {flashcardsDomain} from './flashcards.js';
 import { importSolid } from './solid-import.js';
 import { createResourceStore } from './resource-store.js';
 import { createLocalPod } from './resource-pod.ts';
@@ -16,7 +17,7 @@ export function dataModule(name, classes, helpers={}, domain=()=>({})) {
     const fetch=createLocalPod({root,store,newEtag:()=> '"'+crypto.randomUUID()+'"'});
     privateClient.declareType('migration',{type:'object',properties:{complete:{type:'boolean'}},required:['complete']});
     const api={...helpers,
-      nativeSolid:context=>nativeSolidView(context,helpers,domain,mode=>privateClient.storage?.access ? privateClient.storage.access.checkPermission(name,mode) : true),...publicResources({privateClient,publicClient,store,root}),
+      nativeSolid:context=>nativeSolidView({...context,adapter:api},helpers,domain,mode=>privateClient.storage?.access ? privateClient.storage.access.checkPermission(name,mode) : true),...publicResources({privateClient,publicClient,store,root}),
       async migrateSolid(fetcher,webId,excludePrefix) {
         if ((await privateClient.getObject('_rs/migration'))?.complete) return;
         await importSolid({fetcher,webId,classes,root,store,fetch,excludePrefix});
@@ -45,12 +46,13 @@ export function dataModule(name, classes, helpers={}, domain=()=>({})) {
 }
 export const Recipes = dataModule('recipes',['https://schema.org/Recipe'],{parseRecipes});
 export const Movies = dataModule('movies',['https://schema.org/Movie','https://schema.org/WatchAction'],{parseMovies});
-const FlashcardsRdf = dataModule('flashcards',['https://solid-memo.com/ns/vocab/v1.ttl#Instance']);
+const FlashcardsRdf = dataModule('flashcards',['https://solid-memo.com/ns/vocab/v1.ttl#Instance'],{},flashcardsDomain);
 export const Flashcards = {name:'flashcards',builder(client,publicClient){
   const legacy=LegacyFlashcards.builder(client).exports;
-  return {exports:{...legacy,...FlashcardsRdf.builder(client,publicClient).exports,
-    async listGroups(){const groups=await client.getListing();return Object.fromEntries(Object.entries(groups||{}).filter(([key])=>key.endsWith('/')&&key!=='_rs/'));}
-  }};
+  const api=FlashcardsRdf.builder(client,publicClient).exports;
+  for(const [key,value] of Object.entries(legacy))if(!(key in api))api[key]=value;
+  api.listGroups=async()=>{const groups=await client.getListing();return Object.fromEntries(Object.entries(groups||{}).filter(([key])=>key.endsWith('/')&&key!=='_rs/'));};
+  return {exports:api};
 }};
 
 export {connectApp} from './connection.js';

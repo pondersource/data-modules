@@ -48,3 +48,18 @@ test('rejects compact and malformed response structures explicitly', () => {
   assert.throws(() => parseSchemaTasks({ name: 'compact JSON-LD' }), /expanded/);
   assert.throws(() => parseSchemaTasks([null]), /node objects/);
 });
+
+test('reads the original lifecycle task format without rewriting its identity', () => {
+  const rdfs = 'http://www.w3.org/2000/01/rdf-schema#';
+  const [result] = parseSchemaTasks([{
+    '@id': 'https://pod.example/legacy/task-without-fragment',
+    '@type': ['http://purl.org/vocab/lifecycle/schema#Task'],
+    [rdfs + 'label']: [{ '@value': 'Legacy task' }],
+    [rdfs + 'comment']: [{ '@value': 'Keep its original document' }],
+    [i + 'completed']: [{ '@value': '2018-12-25T00:00:00.000Z' }],
+  }]);
+  assert.equal(result.uri, 'https://pod.example/legacy/task-without-fragment');
+  assert.equal(result.name, 'Legacy task');
+  assert.equal(result.description, 'Keep its original document');
+  assert.equal(result.completed, true);
+});

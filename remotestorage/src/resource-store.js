@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+import {Parser} from 'n3';
 /** RDF resources are retained losslessly inside the owning remoteStorage scope. */
 export function createResourceStore(client, scope) {
   client.declareType('rdf-resource', {
@@ -29,6 +30,13 @@ export function createResourceStore(client, scope) {
       const {record} = await locate(url);
       if (!record) return undefined;
       const resource = {...record.resource};
+      if(!['container','rdf','file'].includes(resource.kind)||typeof resource.etag!=='string')throw Error('Invalid module resource record');
+      if(resource.kind==='rdf'||resource.kind==='container'&&resource.triples!==undefined) {
+        if(!Array.isArray(resource.triples)||resource.triples.some(line=>typeof line!=='string'))throw Error('Invalid stored RDF statements');
+        // Validate before serving HTTP200. Some upstream readers treat a later
+        // parser exception as an absent index and would create a replacement.
+        new Parser({baseIRI:url}).parse(resource.triples.join('\n'));
+      }
       if (resource.kind === 'file') resource.bytes = Uint8Array.from(atob(resource.base64), c=>c.charCodeAt(0));
       delete resource.base64;
       return resource;

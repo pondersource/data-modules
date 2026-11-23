@@ -50,10 +50,28 @@ interface PodRequest {
 export function createLocalPod({ root, store, newEtag }: LocalPodDeps): typeof globalThis.fetch {
   return async (input, init) => {
     const url = withoutFragment(String(input instanceof Request ? input.url : input));
-    const method = (init?.method ?? "GET").toUpperCase();
-    const headers = new Headers(init?.headers);
+    let method = (init?.method ?? "GET").toUpperCase();
+    let headers = new Headers(init?.headers);
+    let body = init?.body ?? null;
     if (!url.startsWith(root)) return answer(url, 404);
-    return store.exclusive(() => handle({ url, method, headers, body: init?.body ?? null }));
+    if (input instanceof Request) {
+      const request = new Request(input, init);
+      method = request.method;
+      headers = request.headers;
+      const type = (headers.get('Content-Type') || '').toLowerCase();
+      body = request.body === null ? null : method === 'PATCH' || type.startsWith('text/turtle')
+        ? await request.text() : await request.arrayBuffer();
+    }
+    try {
+      return await store.exclusive(() => handle({ url, method, headers, body }));
+    } catch (cause) {
+      // Match fetch's rejected-request contract. An integrity/storage failure
+      // must not be mistaken for an absent document by an RDF reader.
+      if (cause instanceof TypeError || (cause instanceof Error && cause.name === 'AbortError')) throw cause;
+      const error = new TypeError('The module storage request failed');
+      Object.defineProperty(error, 'cause', { value: cause });
+      throw error;
+    }
   };
 
   async function handle(request: PodRequest) {
@@ -141,18 +159,19 @@ export function createLocalPod({ root, store, newEtag }: LocalPodDeps): typeof g
   ): Promise<StoredResource | Response> {
     const { url, method, headers } = request;
     const contentType = headers.get("Content-Type") ?? "";
+    const mediaType = contentType.split(';')[0].trim().toLowerCase();
     const text = typeof request.body === "string" ? request.body : null;
     if (method === "PATCH") {
-      if ((!contentType.startsWith("application/sparql-update") && !contentType.startsWith("text/n3")) || text === null)
+      if ((mediaType!=="application/sparql-update" && mediaType!=="text/n3") || text === null)
         return answer(url, 415);
       if (current !== undefined && current.kind !== "rdf") return answer(url, 409);
-      const triples = contentType.startsWith('text/n3')
+      const triples = mediaType==='text/n3'
         ? await n3Patched(url,current?.triples ?? [],text)
         : await patched(url, current?.triples ?? [], text);
       if (triples === null) return answer(url, 400);
       return { kind: "rdf", etag: newEtag(), triples };
     }
-    if (contentType.startsWith("text/turtle")) {
+    if (mediaType==="text/turtle") {
       const triples = await parsed(url, text ?? "");
       if (triples === null) return answer(url, 400);
       return { kind: "rdf", etag: newEtag(), triples: [...triples] };

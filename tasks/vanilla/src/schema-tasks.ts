@@ -1,5 +1,7 @@
 const schema = 'https://schema.org/';
 const ical = 'http://www.w3.org/2002/12/cal/ical#';
+const rdfs = 'http://www.w3.org/2000/01/rdf-schema#';
+const legacy = 'http://purl.org/vocab/lifecycle/schema#';
 type ExpandedNode = Record<string, unknown>;
 
 export type SchemaTask = {
@@ -43,7 +45,7 @@ export function parseSchemaTasks(input: unknown): SchemaTask[] {
       throw new TypeError('Expected expanded JSON-LD node objects');
     }
     const types = Array.isArray(node['@type']) ? node['@type'] : [];
-    if (!types.includes(schema + 'Action') && !types.includes(ical + 'Vtodo')) continue;
+    if (!types.includes(schema + 'Action') && !types.includes(ical + 'Vtodo') && !types.includes(legacy + 'Task')) continue;
     if (typeof node['@id'] !== 'string') continue;
     const completedAt = date(node, ical + 'completed');
     const priorityValue = first(node, ical + 'priority');
@@ -52,8 +54,8 @@ export function parseSchemaTasks(input: unknown): SchemaTask[] {
     const status = first(node, schema + 'actionStatus', '@id');
     result.push({
       uri: node['@id'],
-      name: text(node, schema + 'name') ?? text(node, ical + 'summary') ?? text(node, schema + 'description'),
-      description: text(node, schema + 'description'),
+      name: text(node, schema + 'name') ?? text(node, ical + 'summary') ?? text(node, schema + 'description') ?? text(node, rdfs + 'label'),
+      description: text(node, schema + 'description') ?? text(node, rdfs + 'comment'),
       actionStatus: typeof status === 'string' ? status : undefined,
       priority: Number.isFinite(priority) ? priority : undefined,
       dueDate: date(node, ical + 'due'),
