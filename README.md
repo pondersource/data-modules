@@ -20,6 +20,8 @@ Data types for which we will produce Solid Data Modules:
 * [profile](./profile) (stub)
 * [tasks](./tasks) (coming soon)
 
+* [recipes](./recipes) (Umai read adapter)
+
 ## Paradigms covered
 The "vanilla" version of each of these data modules will be usable in combination with just an
 authenticated fetcher, such as [Solid Auth Fetcher](https://github.com/solid-contrib/solid-auth-fetcher),
