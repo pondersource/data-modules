@@ -18,4 +18,4 @@ jobs:
           node-version: '22'
       - run: npm install --ignore-scripts --no-audit --no-fund --no-package-lock
       - run: npx tsc -p tsconfig.json
-      - run: node --test tests/schema-tasks.test.mjs
+      - run: node --test tests/*.test.mjs

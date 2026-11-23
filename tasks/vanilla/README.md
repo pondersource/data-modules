@@ -62,3 +62,27 @@ Input must be expanded JSON-LD (array or `@graph` wrapper); this function does n
 npx tsc -p tsconfig.json
 node --test tests/schema-tasks.test.mjs
 ```
+
+
+### SolidFocus native documents
+
+`focusSchemas` contains the Task, legacy Task, list and workspace definitions used
+by SolidFocus v0.3.4 (upstream commit
+`ecdef05e5d267e81c12a04e20f7ff6e2a5cfb783`). They retain its Schema.org Action /
+iCalendar Vtodo fields, legacy lifecycle Task fields, summary alias and Soukai
+history settings. The original project and schemas are by Noel De Martin, under
+MIT: https://github.com/NoelDeMartin/solid-focus.
+
+`openFocus(fetch, { Task, TasksList, Workspace, SolidEngine })` constructs a store
+with the application's original model subclasses and a module-owned fetch. Its
+operations read, create and edit tasks, lists and workspaces, delete tasks and
+read their native history. The original Soukai engine writes the RDF and CRDT
+history on the original document URLs; the module does not replace those formats
+with an application-specific JSON archive. Returned models remain bound to that
+store's engine. Temporary class engine/collection settings are restored after
+successful and failed operations.
+
+`readFocusDocument(url, fetch)` reads a Turtle/N-Triples document, returning its
+original bytes, URL, media type, ETag, all RDF quads and a task/history view. The
+full quads preserve unknown predicates, blank nodes, language tags and literal
+datatypes; interpreting a task does not rewrite its source document.
