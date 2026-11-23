@@ -77,7 +77,7 @@ export class ChatsModuleRdfLib implements ChatsModule {
 
     const documents = await this.fetchMessagesDocuments(latestDay);
     return documents.flatMap(document => new MessagesDocumentQuery(chatNode, document, this.store).queryMessages())
-      .sort((a, b) => b.date.getTime() - a.date.getTime());
+      .sort((a, b) => a.date.getTime() - b.date.getTime());
   }
 
   private async fetchLatestSubContainer(container: NamedNode) {

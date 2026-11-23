@@ -8,7 +8,9 @@ import {
     getLiteral,
     getUrlAll,
     getNamedNode,
-    getPodUrlAll,
+    getPodUrlAllFrom,
+    getProfileAll,
+    FetchError,
     getSolidDataset,
     getThing,
     saveSolidDatasetAt,
@@ -116,7 +118,8 @@ export class Bookmark {
         } else {
             // Reuse the scoped fetcher's profile: solid-client otherwise reads it anonymously.
             const webIdProfile = await getSolidDataset(webId!, { fetch });
-            const podToUse = (await getPodUrlAll(webId!, { fetch, webIdProfile }))[0];
+            const profiles = await getProfileAll(webId, { fetch, webIdProfile });
+            const podToUse = getPodUrlAllFrom(profiles, webId)[0];
 
             const baseURL = podToUse ? podToUse : webId?.split("/profile")[0]
 
@@ -125,7 +128,7 @@ export class Bookmark {
             try {
                 await getSolidDataset(defaultPrivateBookmarkDocUrl, { fetch });
             } catch (error) {
-                if (error.response?.status !== 404) throw error;
+                if (!(error instanceof FetchError) || error.response.status !== 404) throw error;
                 await saveSolidDatasetAt(defaultPrivateBookmarkDocUrl, createSolidDataset(), { fetch: fetch });
             }
             // registerInTypeIndex also re-creates the target document. Register

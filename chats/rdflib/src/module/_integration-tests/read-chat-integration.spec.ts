@@ -37,7 +37,7 @@ describe("read chat", () => {
     expect(chat.name).toEqual("An existing chat channel");
   });
 
-  it("reads the latest messages", async () => {
+  it("reads every latest-day document in chronological message order", async () => {
     // given a chats module
     const authenticatedFetch = jest.fn();
     const chats = setupModule(authenticatedFetch);
@@ -79,7 +79,23 @@ describe("read chat", () => {
     mockLdpContainer(
       authenticatedFetch,
       "https://pod.test/alice/chats/abc123/2024/07/01/",
-      ["https://pod.test/alice/chats/abc123/2024/07/01/chat.ttl"],
+      [
+        "https://pod.test/alice/chats/abc123/2024/07/01/chat.ttl",
+        "https://pod.test/alice/chats/abc123/2024/07/01/index.ttl",
+      ],
+    );
+
+    mockTurtleDocument(
+      authenticatedFetch,
+      "https://pod.test/alice/chats/abc123/2024/07/01/index.ttl",
+      `<https://pod.test/alice/chats/abc123/index.ttl#this>
+        <http://www.w3.org/2005/01/wf/flow#message> <#later>, <#earlier>.
+      <#later> <http://rdfs.org/sioc/ns#content> "Later message";
+        <http://purl.org/dc/terms/created> "2024-07-01T17:49:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>;
+        <http://xmlns.com/foaf/0.1/maker> <http://localhost:3000/alice/profile/card#me>.
+      <#earlier> <http://rdfs.org/sioc/ns#content> "Earlier message";
+        <http://purl.org/dc/terms/created> "2024-07-01T17:46:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>;
+        <http://xmlns.com/foaf/0.1/maker> <http://localhost:3000/alice/profile/card#me>.`,
     );
 
     mockTurtleDocument(
@@ -103,10 +119,22 @@ describe("read chat", () => {
     // then the message is part of the latest messages
     expect(chat.latestMessages).toEqual([
       {
+        uri: "https://pod.test/alice/chats/abc123/2024/07/01/index.ttl#earlier",
+        authorWebId: "http://localhost:3000/alice/profile/card#me",
+        date: new Date("2024-07-01T17:46:00Z"),
+        text: "Earlier message",
+      },
+      {
         uri: "https://pod.test/alice/chats/abc123/2024/07/01/chat.ttl#Msg1723225634153",
         authorWebId: "http://localhost:3000/alice/profile/card#me",
         date: new Date("2024-07-01T17:47:14Z"),
         text: "Hello visitor, welcome to my public chat lobby!",
+      },
+      {
+        uri: "https://pod.test/alice/chats/abc123/2024/07/01/index.ttl#later",
+        authorWebId: "http://localhost:3000/alice/profile/card#me",
+        date: new Date("2024-07-01T17:49:00Z"),
+        text: "Later message",
       },
     ]);
   });
