@@ -3,14 +3,14 @@ name: Documentation
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: "pages"
+  group: "pages-${{ github.ref }}"
   cancel-in-progress: false
 
 jobs:
@@ -19,9 +19,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v2
-
       - name: Use Node.js 20
         uses: actions/setup-node@v4
         with:
@@ -29,9 +26,9 @@ jobs:
 
 ###################### Contacts module
 
-      - name: Install contacts dev dependencies
+      - name: Install contacts dependencies
         working-directory: ./contacts
-        run: npm ci --only=dev
+        run: npm ci
 
       - name: Build contacts doc
         working-directory: ./contacts
@@ -40,9 +37,9 @@ jobs:
 ######################
 ###################### bookmarks/vanilla module
 
-      - name: Install bookmarks/vanilla dev dependencies
+      - name: Install bookmarks/vanilla dependencies
         working-directory: ./bookmarks/vanilla
-        run: npm ci --only=dev
+        run: npm ci
 
       - name: Build bookmarks/vanilla doc
         working-directory: ./bookmarks/vanilla
@@ -51,9 +48,9 @@ jobs:
 ######################
 ###################### bookmarks/soukai module
 
-      - name: Install bookmarks/soukai dev dependencies
+      - name: Install bookmarks/soukai dependencies
         working-directory: ./bookmarks/soukai
-        run: npm ci --only=dev
+        run: npm ci
 
       - name: Build bookmarks/soukai doc
         working-directory: ./bookmarks/soukai
@@ -62,9 +59,9 @@ jobs:
 ######################
 ###################### bookmarks/rdflib module
 
-      - name: Install bookmarks/rdflib dev dependencies
+      - name: Install bookmarks/rdflib dependencies
         working-directory: ./bookmarks/rdflib
-        run: npm ci --only=dev
+        run: npm ci
 
       - name: Build bookmarks/rdflib doc
         working-directory: ./bookmarks/rdflib
@@ -73,9 +70,9 @@ jobs:
 ######################
 ###################### chats/rdflib module
 
-      - name: Install chats/rdflib dev dependencies
+      - name: Install chats/rdflib dependencies
         working-directory: ./chats/rdflib
-        run: npm ci --only=dev
+        run: npm ci
 
       - name: Build chats/rdflib doc
         working-directory: ./chats/rdflib
@@ -84,9 +81,9 @@ jobs:
 ######################
 ###################### rdflib utils
 
-      - name: Install rdflib utils dev dependencies
+      - name: Install rdflib utils dependencies
         working-directory: ./utils/rdflib
-        run: npm ci --only=dev
+        run: npm ci
 
       - name: Build utils/rdflib doc
         working-directory: ./utils/rdflib
@@ -100,12 +97,21 @@ jobs:
           path: 'gh-pages'
 
   deploy:
+    # Forks and PRs build the same documentation without creating a Pages site.
+    if: github.repository == 'solid-contrib/data-modules' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
     steps:
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
