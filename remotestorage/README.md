@@ -23,7 +23,7 @@ rs.js, with remoteStorage, Dropbox, Google Drive and Solid choices.
 
 ## Storage and migration
 
-The internal RDF identifiers are stable across providers. They are identifiers,
+On the existing compatibility path, internal RDF identifiers are stable across providers. They are identifiers,
 not public web links. Records live under `<scope>/_rs/resources/`, encoded as
 JSON with RDF triples or binary bytes. `_rs/` is reserved for module records.
 Existing Solid registrations are imported once, read-only, through the module.
@@ -125,3 +125,36 @@ This is not yet a real-server certification or the default consumer-app mode:
 the migration choice for existing JSON-adapter data is pending. Existing app
 connections continue using their prior copy-based adapter until that choice is
 implemented and tested.
+
+## Source-aware native Solid consumers
+
+Applications with source-aware discovery enable `connectApp(..., {nativeSolid:true})`.
+Their connected identity and module `fetch` then refer to the original Solid Pod.
+Opening this connection does not initialize a synthetic profile, import originals,
+or move existing records. The active `connection.api` is a getter; consumers must
+not capture its initial value before the widget connects.
+
+`connection.api.adapter` is the same complete virtual-Pod module API used by
+older versions, including existing publishing and legacy flashcard methods.
+The property is readonly; existing adapter documents remain writable in place.
+The connection routes their synthetic URLs to that adapter and original native
+URLs through the scoped native fetch. Foreign reads omit credentials and foreign
+writes are refused. Request objects retain their method, headers, body and
+cancellation semantics; storage/integrity failures reject as failed fetches,
+not absent documents.
+
+Flashcards provides `storageSources()` and `identityFor(url)`. A source-aware
+consumer reads both type indexes, handles only a missing optional adapter profile
+as absent, and edits each registration under its original identity. Native
+publishing retains the upstream WAC/ACP path; adapter publishing continues to
+create explicit public copies. No source profile is overlaid or rewritten.
+
+The native option is off by default until a consumer implements this discovery
+and ownership routing. This keeps unmodified apps from hiding their older
+adapter collections when the shared module library is upgraded.
+
+Tasks additionally exports `focusSchemas`, `openFocus(models)` and
+`readFocusDocument(url)`. The application supplies its original Soukai model
+classes, while the module owns their fetch and native schema/history operations.
+The domain bundle also exports `connectApp` and the schema definitions for app
+boot without a second module bundle.

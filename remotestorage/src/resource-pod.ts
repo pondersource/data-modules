@@ -50,10 +50,28 @@ interface PodRequest {
 export function createLocalPod({ root, store, newEtag }: LocalPodDeps): typeof globalThis.fetch {
   return async (input, init) => {
     const url = withoutFragment(String(input instanceof Request ? input.url : input));
-    const method = (init?.method ?? "GET").toUpperCase();
-    const headers = new Headers(init?.headers);
+    let method = (init?.method ?? "GET").toUpperCase();
+    let headers = new Headers(init?.headers);
+    let body = init?.body ?? null;
     if (!url.startsWith(root)) return answer(url, 404);
-    return store.exclusive(() => handle({ url, method, headers, body: init?.body ?? null }));
+    if (input instanceof Request) {
+      const request = new Request(input, init);
+      method = request.method;
+      headers = request.headers;
+      const type = (headers.get('Content-Type') || '').toLowerCase();
+      body = request.body === null ? null : method === 'PATCH' || type.startsWith('text/turtle')
+        ? await request.text() : await request.arrayBuffer();
+    }
+    try {
+      return await store.exclusive(() => handle({ url, method, headers, body }));
+    } catch (cause) {
+      // Match fetch's rejected-request contract. An integrity/storage failure
+      // must not be mistaken for an absent document by an RDF reader.
+      if (cause instanceof TypeError || (cause instanceof Error && cause.name === 'AbortError')) throw cause;
+      const error = new TypeError('The module storage request failed');
+      Object.defineProperty(error, 'cause', { value: cause });
+      throw error;
+    }
   };
 
   async function handle(request: PodRequest) {

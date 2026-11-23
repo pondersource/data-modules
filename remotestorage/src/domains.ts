@@ -4,11 +4,13 @@ import { dataModule } from './index.js';
 import LegacyBookmarksImport from 'remotestorage-module-bookmarks';
 import {parseVCard,parseICalendarTasks} from './text-formats.js';
 export {parseVCard,parseICalendarTasks};
+export {connectApp} from './connection.js';
 const LegacyBookmarks=LegacyBookmarksImport.default || LegacyBookmarksImport;
 import { Fetcher, graph, UpdateManager, sym, Namespace } from 'rdflib';
 import { ContactsModuleRdfLib } from '../../contacts/src/rdflib/ContactsModuleRdfLib.js';
 import { ChatsModuleRdfLib } from '../../chats/rdflib/src/module/ChatsModuleRdfLib.js';
 import * as tasks from '../../tasks/vanilla/src/main.js';
+export const focusSchemas=tasks.focusSchemas;
 import { BookmarksModuleRdfLib } from '../../bookmarks/rdflib/src/module/BookmarksModuleRdfLib.js';
 import { Bookmark } from '../../bookmarks/vanilla/src/modules/Bookmark';
 
@@ -33,6 +35,9 @@ export const Chats=dataModule('chats',['http://www.w3.org/ns/pim/meeting#LongCha
 export const Tasks=dataModule('tasks',[
   'http://www.w3.org/2005/01/wf/flow#Tracker','https://schema.org/Action','http://www.w3.org/2002/12/cal/ical#Vtodo'
 ],{parseICalendarTasks},api=>({
+  focusSchemas:tasks.focusSchemas,
+  openFocus:models=>tasks.openFocus(api.fetch,models),
+  readFocusDocument:url=>tasks.readFocusDocument(url,api.fetch),
   parseSchemaTasks:tasks.parseSchemaTasks,
   fetchTracker:uri=>tasks.fetchTracker(uri,api.fetch),
   fetchContainer:uri=>tasks.fetchContainer(uri,api.fetch),
@@ -58,7 +63,9 @@ const SolidBookmarks=dataModule('bookmarks',[
 export const Bookmarks={name:'bookmarks',builder(privateClient,publicClient){
   const legacy=LegacyBookmarks.builder(privateClient,publicClient).exports;
   const {client,...domain}=legacy;
-  return {exports:{...domain,...SolidBookmarks.builder(privateClient,publicClient).exports}};
+  const api=SolidBookmarks.builder(privateClient,publicClient).exports;
+  for(const [key,value] of Object.entries(domain))if(!(key in api))api[key]=value;
+  return {exports:api};
 }};
 
 export const Profile=dataModule('profile',['http://xmlns.com/foaf/0.1/Person'],{},api=>({
