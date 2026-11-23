@@ -96,7 +96,7 @@ test('a disconnected preparation cannot publish a stale identity',async t=>{
 
 test('Request writes retain method, validators, RDF text and arbitrary binary bytes',async()=>{
   const api=Flashcards.builder(client()).exports,url=api.root+'data.ttl';
-  assert.equal((await api.fetch(new Request(url,{method:'PUT',headers:{'Content-Type':'text/turtle','If-None-Match':'*'},body:'<#x> <https://schema.org/name> "One".'}))).status,201);
+  assert.equal((await api.fetch(new Request(url,{method:'PUT',headers:{'Content-Type':'Text/Turtle; charset=UTF-8','If-None-Match':'*'},body:'<#x> <https://schema.org/name> "One".'}))).status,201);
   const etag=(await api.fetch(url)).headers.get('ETag');
   assert.equal((await api.fetch(new Request(url,{method:'PATCH',headers:{'Content-Type':'application/sparql-update','If-Match':etag},body:'INSERT DATA { <#x> <https://unknown.example/p> "Two". }'}))).status,205);
   assert.equal((await api.fetch(new Request(url,{method:'DELETE',headers:{'If-Match':etag}}))).status,412);
@@ -111,6 +111,13 @@ test('corrupt adapter records fail as fetch errors rather than looking absent',a
   data.set('_rs/resources/'+encodeURIComponent(url),{url:api.root+'another',resource:{kind:'rdf',etag:'"bad"',triples:[]}});
   await assert.rejects(api.fetch(url),error=>error instanceof TypeError && /identity/.test(error.cause.message));
   assert.equal(data.size,1,'a failed read never removes the original record');
+});
+
+test('malformed stored RDF rejects instead of becoming an apparently missing type index',async()=>{
+  const data=new Map(),api=Flashcards.builder(client(data)).exports,url=api.root+'settings/privateTypeIndex';
+  data.set('_rs/resources/'+encodeURIComponent(url),{url,resource:{kind:'rdf',etag:'"broken"',triples:['<not-valid-turtle']}});
+  await assert.rejects(api.fetch(url),error=>error instanceof TypeError && error.cause instanceof Error);
+  assert.equal(data.size,1);
 });
 
 test('foreign Request reads preserve accept/cancellation without credentials or arbitrary headers',async t=>{

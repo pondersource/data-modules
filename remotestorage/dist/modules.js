@@ -11594,6 +11594,11 @@ var PonderSourceModules = (() => {
         const { record } = await locate(url);
         if (!record) return void 0;
         const resource = { ...record.resource };
+        if (!["container", "rdf", "file"].includes(resource.kind) || typeof resource.etag !== "string") throw Error("Invalid module resource record");
+        if (resource.kind === "rdf" || resource.kind === "container" && resource.triples !== void 0) {
+          if (!Array.isArray(resource.triples) || resource.triples.some((line) => typeof line !== "string")) throw Error("Invalid stored RDF statements");
+          new N3Parser({ baseIRI: url }).parse(resource.triples.join("\n"));
+        }
         if (resource.kind === "file") resource.bytes = Uint8Array.from(atob(resource.base64), (c) => c.charCodeAt(0));
         delete resource.base64;
         return resource;
@@ -11764,16 +11769,17 @@ var PonderSourceModules = (() => {
     async function written(request, current) {
       const { url, method, headers } = request;
       const contentType = headers.get("Content-Type") ?? "";
+      const mediaType = contentType.split(";")[0].trim().toLowerCase();
       const text = typeof request.body === "string" ? request.body : null;
       if (method === "PATCH") {
-        if (!contentType.startsWith("application/sparql-update") && !contentType.startsWith("text/n3") || text === null)
+        if (mediaType !== "application/sparql-update" && mediaType !== "text/n3" || text === null)
           return answer(url, 415);
         if (current !== void 0 && current.kind !== "rdf") return answer(url, 409);
-        const triples = contentType.startsWith("text/n3") ? await n3Patched(url, current?.triples ?? [], text) : await patched(url, current?.triples ?? [], text);
+        const triples = mediaType === "text/n3" ? await n3Patched(url, current?.triples ?? [], text) : await patched(url, current?.triples ?? [], text);
         if (triples === null) return answer(url, 400);
         return { kind: "rdf", etag: newEtag(), triples };
       }
-      if (contentType.startsWith("text/turtle")) {
+      if (mediaType === "text/turtle") {
         const triples = await parsed(url, text ?? "");
         if (triples === null) return answer(url, 400);
         return { kind: "rdf", etag: newEtag(), triples: [...triples] };

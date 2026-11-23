@@ -186,6 +186,7 @@ test('native Solid views read and edit original upstream document URLs in place'
  await put(upstream,url.split('#')[0],`<#bookmark> a <http://www.w3.org/2002/01/bookmark#Bookmark>; <http://purl.org/dc/terms/title> "Original"; <http://www.w3.org/2002/01/bookmark#recalls> <https://example.test/old>; <https://example.test/unknown> "retain"@nl. <#sibling> <https://example.test/keep> [ <https://example.test/value> "blank node" ].`);
  const module=await opened(Bookmarks),calls=[];
  const native=module.nativeSolid({root:upstream.root,webId:upstream.webId,fetch:async(input,init)=>{calls.push(String(input));return upstream.fetch(input,init);}});
+ assert.equal(native.adapter,module);assert.equal(typeof native.adapter.archive.getAll,'function');
  assert.equal((await native.solid.get(url)).title,'Original');
  await native.solid.update(url,{title:'Edited through module',link:'https://example.test/new'});
  // A fresh upstream domain instance reads the same source document, not an import.

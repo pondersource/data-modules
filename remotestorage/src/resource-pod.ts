@@ -159,18 +159,19 @@ export function createLocalPod({ root, store, newEtag }: LocalPodDeps): typeof g
   ): Promise<StoredResource | Response> {
     const { url, method, headers } = request;
     const contentType = headers.get("Content-Type") ?? "";
+    const mediaType = contentType.split(';')[0].trim().toLowerCase();
     const text = typeof request.body === "string" ? request.body : null;
     if (method === "PATCH") {
-      if ((!contentType.startsWith("application/sparql-update") && !contentType.startsWith("text/n3")) || text === null)
+      if ((mediaType!=="application/sparql-update" && mediaType!=="text/n3") || text === null)
         return answer(url, 415);
       if (current !== undefined && current.kind !== "rdf") return answer(url, 409);
-      const triples = contentType.startsWith('text/n3')
+      const triples = mediaType==='text/n3'
         ? await n3Patched(url,current?.triples ?? [],text)
         : await patched(url, current?.triples ?? [], text);
       if (triples === null) return answer(url, 400);
       return { kind: "rdf", etag: newEtag(), triples };
     }
-    if (contentType.startsWith("text/turtle")) {
+    if (mediaType==="text/turtle") {
       const triples = await parsed(url, text ?? "");
       if (triples === null) return answer(url, 400);
       return { kind: "rdf", etag: newEtag(), triples: [...triples] };
