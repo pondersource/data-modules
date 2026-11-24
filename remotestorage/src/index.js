@@ -8,7 +8,15 @@ import { createResourceStore } from './resource-store.js';
 import { createLocalPod } from './resource-pod.ts';
 import { parseRecipes } from './recipes.js';
 import { parseMovies } from './movies.ts';
+import {calendarModule} from '../../calendar/vanilla/src/index.js';
+import {calendarRDF} from '../../calendar/vanilla/src/rdf.js';
 export { parseRecipes,parseMovies };
+/** Canonical JSON events plus lossless explicit RDF, Atomic and iCalendar codecs. */
+export const Calendar = {name:'calendar',builder(client){
+  const api=calendarModule(client);
+  api.nativeSolid=context=>nativeSolidView(context,api,calendarRDF,mode=>client.storage?.access?client.storage.access.checkPermission('calendar',mode):true);
+  return {exports:api};
+}};
 /** The module owns the storage API; apps receive only its domain and RDF interfaces. */
 export function dataModule(name, classes, helpers={}, domain=()=>({})) {
   return {name,builder(privateClient,publicClient) {

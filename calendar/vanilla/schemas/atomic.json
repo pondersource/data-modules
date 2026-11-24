@@ -1,0 +1,110 @@
+[
+  {
+    "@id": "https://pondersource.com/ns/calendar/Event",
+    "https://atomicdata.dev/properties/isA": [
+      "https://atomicdata.dev/classes/Class"
+    ],
+    "https://atomicdata.dev/properties/shortname": "calendar-event",
+    "https://atomicdata.dev/properties/requires": [
+      "https://pondersource.com/ns/calendar/uid",
+      "https://pondersource.com/ns/calendar/start"
+    ],
+    "https://atomicdata.dev/properties/recommends": [
+      "https://atomicdata.dev/properties/name",
+      "https://atomicdata.dev/properties/description",
+      "https://pondersource.com/ns/calendar/location",
+      "https://pondersource.com/ns/calendar/duration",
+      "https://pondersource.com/ns/calendar/start",
+      "https://pondersource.com/ns/calendar/end",
+      "https://pondersource.com/ns/calendar/recurrenceId"
+    ]
+  },
+  {
+    "@id": "https://pondersource.com/ns/calendar/uid",
+    "https://atomicdata.dev/properties/isA": [
+      "https://atomicdata.dev/classes/Property"
+    ],
+    "https://atomicdata.dev/properties/shortname": "calendar-uid",
+    "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/string"
+  },
+  {
+    "@id": "https://pondersource.com/ns/calendar/location",
+    "https://atomicdata.dev/properties/isA": [
+      "https://atomicdata.dev/classes/Property"
+    ],
+    "https://atomicdata.dev/properties/shortname": "calendar-location",
+    "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/string"
+  },
+  {
+    "@id": "https://pondersource.com/ns/calendar/duration",
+    "https://atomicdata.dev/properties/isA": [
+      "https://atomicdata.dev/classes/Property"
+    ],
+    "https://atomicdata.dev/properties/shortname": "calendar-duration",
+    "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/string"
+  },
+  {
+    "@id": "https://pondersource.com/ns/calendar/start",
+    "https://atomicdata.dev/properties/isA": [
+      "https://atomicdata.dev/classes/Property"
+    ],
+    "https://atomicdata.dev/properties/shortname": "calendar-start",
+    "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/string"
+  },
+  {
+    "@id": "https://pondersource.com/ns/calendar/end",
+    "https://atomicdata.dev/properties/isA": [
+      "https://atomicdata.dev/classes/Property"
+    ],
+    "https://atomicdata.dev/properties/shortname": "calendar-end",
+    "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/string"
+  },
+  {
+    "@id": "https://pondersource.com/ns/calendar/recurrenceId",
+    "https://atomicdata.dev/properties/isA": [
+      "https://atomicdata.dev/classes/Property"
+    ],
+    "https://atomicdata.dev/properties/shortname": "calendar-recurrence-id",
+    "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/string"
+  },
+  {
+    "@id": "https://pondersource.com/ns/calendar/startTimezone",
+    "https://atomicdata.dev/properties/isA": [
+      "https://atomicdata.dev/classes/Property"
+    ],
+    "https://atomicdata.dev/properties/shortname": "calendar-start-timezone",
+    "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/string"
+  },
+  {
+    "@id": "https://pondersource.com/ns/calendar/endTimezone",
+    "https://atomicdata.dev/properties/isA": [
+      "https://atomicdata.dev/classes/Property"
+    ],
+    "https://atomicdata.dev/properties/shortname": "calendar-end-timezone",
+    "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/string"
+  },
+  {
+    "@id": "https://pondersource.com/ns/calendar/recurrenceIdTimezone",
+    "https://atomicdata.dev/properties/isA": [
+      "https://atomicdata.dev/classes/Property"
+    ],
+    "https://atomicdata.dev/properties/shortname": "calendar-recurrence-id-timezone",
+    "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/string"
+  },
+  {
+    "@id": "https://pondersource.com/ns/calendar/recurrence",
+    "https://atomicdata.dev/properties/isA": [
+      "https://atomicdata.dev/classes/Property"
+    ],
+    "https://atomicdata.dev/properties/shortname": "calendar-recurrence",
+    "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/json"
+  },
+  {
+    "@id": "https://pondersource.com/ns/calendar/sources",
+    "https://atomicdata.dev/properties/isA": [
+      "https://atomicdata.dev/classes/Property"
+    ],
+    "https://atomicdata.dev/properties/shortname": "calendar-sources",
+    "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/json"
+  }
+]

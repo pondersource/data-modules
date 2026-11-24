@@ -5,6 +5,7 @@ import LegacyBookmarksImport from 'remotestorage-module-bookmarks';
 import {parseVCard,parseICalendarTasks} from './text-formats.js';
 export {parseVCard,parseICalendarTasks};
 export {connectApp} from './connection.js';
+export {Calendar} from './index.js';
 const LegacyBookmarks=LegacyBookmarksImport.default || LegacyBookmarksImport;
 import { Fetcher, graph, UpdateManager, sym, Namespace } from 'rdflib';
 import { ContactsModuleRdfLib } from '../../contacts/src/rdflib/ContactsModuleRdfLib.js';
