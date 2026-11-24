@@ -8,8 +8,7 @@ import { createResourceStore } from './resource-store.js';
 import { createLocalPod } from './resource-pod.ts';
 import { parseRecipes } from './recipes.js';
 import { parseMovies } from './movies.ts';
-import {calendarModule} from '../../calendar/vanilla/src/index.js';
-import {calendarRDF} from '../../calendar/vanilla/src/rdf.js';
+import {calendarModule,calendarRDF} from './calendar.js';
 export { parseRecipes,parseMovies };
 /** Canonical JSON events plus lossless explicit RDF, Atomic and iCalendar codecs. */
 export const Calendar = {name:'calendar',builder(client){

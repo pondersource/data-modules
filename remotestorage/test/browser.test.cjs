@@ -15,6 +15,7 @@ test('browser bundle retains contacts, chats and bookmarks without external stor
       const client=()=>{
         const data=new Map();return {declareType(){},getObject:async k=>structuredClone(data.get(k)),
           storeObject:async(t,k,v)=>data.set(k,structuredClone(v)),remove:async k=>data.delete(k),
+          getAll:async(prefix='')=>Object.fromEntries([...data].filter(([key])=>key.startsWith(prefix)).map(([key,value])=>[key.slice(prefix.length),structuredClone(value)])),
           getListing:async(prefix='')=>Object.fromEntries([...data.keys()].filter(k=>k.startsWith(prefix)).map(k=>{
             const rest=k.slice(prefix.length),slash=rest.indexOf('/');return [slash<0?rest:rest.slice(0,slash+1),{}];
           }))};
@@ -39,9 +40,14 @@ test('browser bundle retains contacts, chats and bookmarks without external stor
         if(messages.length!==2)throw Error('LDO did not read both native message document formats');
       } finally {await ldo.destroy();}
 
-      return {name:contact.name,messages:chat.latestMessages.length,bookmark:saved[0].title};
+      const calendar=PonderSourceDomains.Calendar.builder(client()).exports;
+      const id=await calendar.create({uid:'browser-event',title:'Calendar',start:{value:'2026-11-24'},vendor:{keep:true}});
+      const value=await calendar.get(id);
+      const mapped=calendar.fromRDF(calendar.toRDF(value))[0];
+      const converted=calendar.fromICalendar(calendar.toICalendar(calendar.fromAtomic(calendar.toAtomic(mapped,{id:'https://atomic.example/calendar/1'}))))[0];
+      return {name:contact.name,messages:chat.latestMessages.length,bookmark:saved[0].title,calendar:calendar.toJSON(converted).vendor};
     });
-    assert.deepEqual(result,{name:'Browser contact',messages:1,bookmark:'Browser bookmark'});
+    assert.deepEqual(result,{name:'Browser contact',messages:1,bookmark:'Browser bookmark',calendar:{keep:true}});
     assert.deepEqual(errors,[]);assert.deepEqual(requests,[]);
   } finally {await browser.close();}
 });

@@ -918,7 +918,7 @@ var PonderSourceModules = (() => {
           }
         }
       };
-      Buffer3.prototype.toJSON = function toJSON2() {
+      Buffer3.prototype.toJSON = function toJSON() {
         return {
           type: "Buffer",
           data: Array.prototype.slice.call(this._arr || this, 0)
@@ -6776,15 +6776,15 @@ var PonderSourceModules = (() => {
     "node_modules/readable-stream/lib/internal/streams/transform.js"(exports, module) {
       "use strict";
       var { ObjectSetPrototypeOf, Symbol: Symbol2 } = require_primordials();
-      module.exports = Transform;
+      module.exports = Transform3;
       var { ERR_METHOD_NOT_IMPLEMENTED } = require_errors().codes;
       var Duplex = require_duplex();
       var { getHighWaterMark } = require_state();
-      ObjectSetPrototypeOf(Transform.prototype, Duplex.prototype);
-      ObjectSetPrototypeOf(Transform, Duplex);
+      ObjectSetPrototypeOf(Transform3.prototype, Duplex.prototype);
+      ObjectSetPrototypeOf(Transform3, Duplex);
       var kCallback = Symbol2("kCallback");
-      function Transform(options) {
-        if (!(this instanceof Transform)) return new Transform(options);
+      function Transform3(options) {
+        if (!(this instanceof Transform3)) return new Transform3(options);
         const readableHighWaterMark = options ? getHighWaterMark(this, options, "readableHighWaterMark", true) : null;
         if (readableHighWaterMark === 0) {
           options = {
@@ -6838,11 +6838,11 @@ var PonderSourceModules = (() => {
           final.call(this);
         }
       }
-      Transform.prototype._final = final;
-      Transform.prototype._transform = function(chunk, encoding, callback) {
+      Transform3.prototype._final = final;
+      Transform3.prototype._transform = function(chunk, encoding, callback) {
         throw new ERR_METHOD_NOT_IMPLEMENTED("_transform()");
       };
-      Transform.prototype._write = function(chunk, encoding, callback) {
+      Transform3.prototype._write = function(chunk, encoding, callback) {
         const rState = this._readableState;
         const wState = this._writableState;
         const length = rState.length;
@@ -6863,7 +6863,7 @@ var PonderSourceModules = (() => {
           }
         });
       };
-      Transform.prototype._read = function() {
+      Transform3.prototype._read = function() {
         if (this[kCallback]) {
           const callback = this[kCallback];
           this[kCallback] = null;
@@ -6879,12 +6879,12 @@ var PonderSourceModules = (() => {
       "use strict";
       var { ObjectSetPrototypeOf } = require_primordials();
       module.exports = PassThrough;
-      var Transform = require_transform();
-      ObjectSetPrototypeOf(PassThrough.prototype, Transform.prototype);
-      ObjectSetPrototypeOf(PassThrough, Transform);
+      var Transform3 = require_transform();
+      ObjectSetPrototypeOf(PassThrough.prototype, Transform3.prototype);
+      ObjectSetPrototypeOf(PassThrough, Transform3);
       function PassThrough(options) {
         if (!(this instanceof PassThrough)) return new PassThrough(options);
-        Transform.call(this, options);
+        Transform3.call(this, options);
       }
       PassThrough.prototype._transform = function(chunk, encoding, cb) {
         cb(null, chunk);
@@ -8161,6 +8161,35 @@ var PonderSourceModules = (() => {
     });
   }
 
+  // node_modules/n3/src/index.js
+  var src_exports = {};
+  __export(src_exports, {
+    BaseIRI: () => BaseIRI,
+    BlankNode: () => BlankNode,
+    DataFactory: () => N3DataFactory_default,
+    DefaultGraph: () => DefaultGraph,
+    EntityIndex: () => N3EntityIndex,
+    Lexer: () => N3Lexer,
+    Literal: () => Literal,
+    NamedNode: () => NamedNode,
+    Parser: () => N3Parser,
+    Quad: () => Quad,
+    Reasoner: () => N3Reasoner,
+    Store: () => N3Store,
+    StoreFactory: () => N3DatasetCoreFactory,
+    StreamParser: () => N3StreamParser,
+    StreamWriter: () => N3StreamWriter,
+    Term: () => Term,
+    Triple: () => Quad,
+    Util: () => N3Util_exports,
+    Variable: () => Variable,
+    Writer: () => N3Writer,
+    default: () => src_default,
+    getRulesFromDataset: () => getRulesFromDataset,
+    termFromId: () => termFromId,
+    termToId: () => termToId
+  });
+
   // node_modules/n3/src/N3Lexer.js
   var import_buffer = __toESM(require_buffer());
 
@@ -8301,7 +8330,7 @@ var PonderSourceModules = (() => {
           return this._input = input;
         }
         const line = this._line, firstChar = input[0];
-        let type = "", value = "", prefix = "", match = null, matchLength = 0, inconclusive = false;
+        let type = "", value = "", prefix2 = "", match = null, matchLength = 0, inconclusive = false;
         switch (firstChar) {
           case "^":
             if (input.length < 3)
@@ -8343,7 +8372,7 @@ var PonderSourceModules = (() => {
             break;
           case "_":
             if ((match = this._blank.exec(input)) || inputFinished && (match = this._blank.exec(`${input} `)))
-              type = "blank", prefix = "_", value = match[1];
+              type = "blank", prefix2 = "_", value = match[1];
             break;
           case '"':
             if (match = this._simpleQuotedString.exec(input))
@@ -8404,7 +8433,7 @@ var PonderSourceModules = (() => {
           case "-":
             if (match = this._number.exec(input) || inputFinished && (match = this._number.exec(`${input} `))) {
               type = "literal", value = match[0];
-              prefix = typeof match[1] === "string" ? xsd.double : typeof match[2] === "string" ? xsd.decimal : xsd.integer;
+              prefix2 = typeof match[1] === "string" ? xsd.double : typeof match[2] === "string" ? xsd.decimal : xsd.integer;
             }
             break;
           case "B":
@@ -8421,7 +8450,7 @@ var PonderSourceModules = (() => {
           case "f":
           case "t":
             if (match = this._boolean.exec(input))
-              type = "literal", value = match[0], prefix = xsd.boolean;
+              type = "literal", value = match[0], prefix2 = xsd.boolean;
             else
               inconclusive = true;
             break;
@@ -8474,7 +8503,7 @@ var PonderSourceModules = (() => {
           if ((this._previousMarker === "@prefix" || this._previousMarker === "PREFIX") && (match = this._prefix.exec(input)))
             type = "prefix", value = match[1] || "";
           else if ((match = this._prefixed.exec(input)) || inputFinished && (match = this._prefixed.exec(`${input} `)))
-            type = "prefixed", prefix = match[1] || "", value = this._unescape(match[2]);
+            type = "prefixed", prefix2 = match[1] || "", value = this._unescape(match[2]);
         }
         if (this._previousMarker === "^^") {
           switch (type) {
@@ -8495,15 +8524,15 @@ var PonderSourceModules = (() => {
             return this._input = input;
         }
         const length = matchLength || match[0].length;
-        const token = emitToken(type, value, prefix, line, length);
+        const token = emitToken(type, value, prefix2, line, length);
         this.previousToken = token;
         this._previousMarker = type;
         input = input.substr(length, input.length);
       }
-      function emitToken(type, value, prefix, line, length) {
+      function emitToken(type, value, prefix2, line, length) {
         const start = input ? currentLineLength - input.length : currentLineLength;
         const end = start + length;
-        const token = { type, value, prefix, line, start, end };
+        const token = { type, value, prefix: prefix2, line, start, end };
         callback(null, token);
         return token;
       }
@@ -9044,10 +9073,10 @@ var PonderSourceModules = (() => {
         // Read a prefixed name
         case "type":
         case "prefixed":
-          const prefix = this._prefixes[token.prefix];
-          if (prefix === void 0)
+          const prefix2 = this._prefixes[token.prefix];
+          if (prefix2 === void 0)
             return this._error(`Undefined prefix "${token.prefix}:"`, token);
-          value = this._factory.namedNode(prefix + token.value);
+          value = this._factory.namedNode(prefix2 + token.value);
           break;
         // Read a blank node
         case "blank":
@@ -9359,23 +9388,23 @@ var PonderSourceModules = (() => {
     }
     // ### `_completeLiteral` completes a literal with an optional datatype or language
     _completeLiteral(token) {
-      let literal3 = this._factory.literal(this._literalValue);
+      let literal2 = this._factory.literal(this._literalValue);
       switch (token.type) {
         // Create a datatyped literal
         case "type":
         case "typeIRI":
           const datatype = this._readEntity(token);
           if (datatype === void 0) return;
-          literal3 = this._factory.literal(this._literalValue, datatype);
+          literal2 = this._factory.literal(this._literalValue, datatype);
           token = null;
           break;
         // Create a language-tagged string
         case "langcode":
-          literal3 = this._factory.literal(this._literalValue, token.value);
+          literal2 = this._factory.literal(this._literalValue, token.value);
           token = null;
           break;
       }
-      return { token, literal: literal3 };
+      return { token, literal: literal2 };
     }
     // Completes a literal in subject position
     _completeSubjectLiteral(token) {
@@ -9650,7 +9679,7 @@ var PonderSourceModules = (() => {
     _readRDFStarTail(token) {
       if (token.type !== ">>")
         return this._error(`Expected >> but got ${token.type}`, token);
-      const quad5 = this._factory.quad(
+      const quad4 = this._factory.quad(
         this._subject,
         this._predicate,
         this._object,
@@ -9658,10 +9687,10 @@ var PonderSourceModules = (() => {
       );
       this._restoreContext("<<", token);
       if (this._subject === null) {
-        this._subject = quad5;
+        this._subject = quad4;
         return this._readPredicate;
       } else {
-        this._object = quad5;
+        this._object = quad4;
         return this._getContextEndReader();
       }
     }
@@ -9849,8 +9878,59 @@ var PonderSourceModules = (() => {
   initDataFactory(N3Parser.prototype, N3DataFactory_default);
 
   // node_modules/n3/src/N3Util.js
+  var N3Util_exports = {};
+  __export(N3Util_exports, {
+    inDefaultGraph: () => inDefaultGraph,
+    isBlankNode: () => isBlankNode,
+    isDefaultGraph: () => isDefaultGraph,
+    isLiteral: () => isLiteral,
+    isNamedNode: () => isNamedNode,
+    isQuad: () => isQuad,
+    isVariable: () => isVariable,
+    prefix: () => prefix,
+    prefixes: () => prefixes
+  });
+  function isNamedNode(term) {
+    return !!term && term.termType === "NamedNode";
+  }
+  function isBlankNode(term) {
+    return !!term && term.termType === "BlankNode";
+  }
+  function isLiteral(term) {
+    return !!term && term.termType === "Literal";
+  }
+  function isVariable(term) {
+    return !!term && term.termType === "Variable";
+  }
+  function isQuad(term) {
+    return !!term && term.termType === "Quad";
+  }
   function isDefaultGraph(term) {
     return !!term && term.termType === "DefaultGraph";
+  }
+  function inDefaultGraph(quad4) {
+    return isDefaultGraph(quad4.graph);
+  }
+  function prefix(iri, factory) {
+    return prefixes({ "": iri.value || iri }, factory)("");
+  }
+  function prefixes(defaultPrefixes, factory) {
+    const prefixes2 = /* @__PURE__ */ Object.create(null);
+    for (const prefix2 in defaultPrefixes)
+      processPrefix(prefix2, defaultPrefixes[prefix2]);
+    factory = factory || N3DataFactory_default;
+    function processPrefix(prefix2, iri) {
+      if (typeof iri === "string") {
+        const cache = /* @__PURE__ */ Object.create(null);
+        prefixes2[prefix2] = (local) => {
+          return cache[local] || (cache[local] = factory.namedNode(iri + local));
+        };
+      } else if (!(prefix2 in prefixes2)) {
+        throw new Error(`Unknown prefix: ${prefix2}`);
+      }
+      return prefixes2[prefix2];
+    }
+    return processPrefix;
   }
 
   // node_modules/n3/src/Util.js
@@ -10031,8 +10111,8 @@ var PonderSourceModules = (() => {
     // ### `quadsToString` serializes an array of quads as a string
     quadsToString(quads) {
       let quadsString = "";
-      for (const quad5 of quads)
-        quadsString += this.quadToString(quad5.subject, quad5.predicate, quad5.object, quad5.graph);
+      for (const quad4 of quads)
+        quadsString += this.quadToString(quad4.subject, quad4.predicate, quad4.object, quad4.graph);
       return quadsString;
     }
     // ### `_encodeSubject` represents a subject
@@ -10056,17 +10136,17 @@ var PonderSourceModules = (() => {
       return !prefixMatch ? `<${iri}>` : !prefixMatch[1] ? iri : this._prefixIRIs[prefixMatch[1]] + prefixMatch[2];
     }
     // ### `_encodeLiteral` represents a literal
-    _encodeLiteral(literal3) {
-      let value = literal3.value;
+    _encodeLiteral(literal2) {
+      let value = literal2.value;
       if (escape.test(value))
         value = value.replace(escapeAll, characterReplacer);
-      if (literal3.language)
-        return `"${value}"@${literal3.language}`;
+      if (literal2.language)
+        return `"${value}"@${literal2.language}`;
       if (this._lineMode) {
-        if (literal3.datatype.value === xsd3.string)
+        if (literal2.datatype.value === xsd3.string)
           return `"${value}"`;
       } else {
-        switch (literal3.datatype.value) {
+        switch (literal2.datatype.value) {
           case xsd3.string:
             return `"${value}"`;
           case xsd3.boolean:
@@ -10087,7 +10167,7 @@ var PonderSourceModules = (() => {
             break;
         }
       }
-      return `"${value}"^^${this._encodeIriOrBlank(literal3.datatype)}`;
+      return `"${value}"^^${this._encodeIriOrBlank(literal2.datatype)}`;
     }
     // ### `_encodePredicate` represents a predicate
     _encodePredicate(predicate) {
@@ -10127,18 +10207,18 @@ var PonderSourceModules = (() => {
         this.addQuad(quads[i]);
     }
     // ### `addPrefix` adds the prefix to the output stream
-    addPrefix(prefix, iri, done) {
-      const prefixes = {};
-      prefixes[prefix] = iri;
-      this.addPrefixes(prefixes, done);
+    addPrefix(prefix2, iri, done) {
+      const prefixes2 = {};
+      prefixes2[prefix2] = iri;
+      this.addPrefixes(prefixes2, done);
     }
     // ### `addPrefixes` adds the prefixes to the output stream
-    addPrefixes(prefixes, done) {
+    addPrefixes(prefixes2, done) {
       if (!this._prefixIRIs)
         return done && done();
       let hasPrefixes = false;
-      for (let prefix in prefixes) {
-        let iri = prefixes[prefix];
+      for (let prefix2 in prefixes2) {
+        let iri = prefixes2[prefix2];
         if (typeof iri !== "string")
           iri = iri.value;
         hasPrefixes = true;
@@ -10146,8 +10226,8 @@ var PonderSourceModules = (() => {
           this._write(this._inDefaultGraph ? ".\n" : "\n}\n");
           this._subject = null, this._graph = "";
         }
-        this._prefixIRIs[iri] = prefix += ":";
-        this._write(`@prefix ${prefix} <${iri}>.
+        this._prefixIRIs[iri] = prefix2 += ":";
+        this._write(`@prefix ${prefix2} <${iri}>.
 `);
       }
       if (hasPrefixes) {
@@ -10481,8 +10561,8 @@ var PonderSourceModules = (() => {
     // ### `add` adds the specified quad to the dataset.
     // Returns the dataset instance it was called on.
     // Existing quads, as defined in Quad.equals, will be ignored.
-    add(quad5) {
-      this.addQuad(quad5);
+    add(quad4) {
+      this.addQuad(quad4);
       return this;
     }
     // ### `addQuad` adds a new quad to the store.
@@ -10513,8 +10593,8 @@ var PonderSourceModules = (() => {
     }
     // ### `delete` removes the specified quad from the dataset.
     // Returns the dataset instance it was called on.
-    delete(quad5) {
-      this.removeQuad(quad5);
+    delete(quad4) {
+      this.removeQuad(quad4);
       return this;
     }
     // ### `has` determines whether a dataset includes a certain quad or quad pattern.
@@ -10525,8 +10605,8 @@ var PonderSourceModules = (() => {
     }
     // ### `import` adds a stream of quads to the store
     import(stream) {
-      stream.on("data", (quad5) => {
-        this.addQuad(quad5);
+      stream.on("data", (quad4) => {
+        this.addQuad(quad4);
       });
       return stream;
     }
@@ -10554,8 +10634,8 @@ var PonderSourceModules = (() => {
     }
     // ### `remove` removes a stream of quads from the store
     remove(stream) {
-      stream.on("data", (quad5) => {
-        this.removeQuad(quad5);
+      stream.on("data", (quad4) => {
+        this.removeQuad(quad4);
       });
       return stream;
     }
@@ -10691,8 +10771,8 @@ var PonderSourceModules = (() => {
     // ### `forEach` executes the callback on all quads.
     // Setting any field to `undefined` or `null` indicates a wildcard.
     forEach(callback, subject, predicate, object, graph) {
-      this.some((quad5) => {
-        callback(quad5, this);
+      this.some((quad4) => {
+        callback(quad4, this);
         return false;
       }, subject, predicate, object, graph);
     }
@@ -10700,14 +10780,14 @@ var PonderSourceModules = (() => {
     // and returns `true` if it returns truthy for all them.
     // Setting any field to `undefined` or `null` indicates a wildcard.
     every(callback, subject, predicate, object, graph) {
-      return !this.some((quad5) => !callback(quad5, this), subject, predicate, object, graph);
+      return !this.some((quad4) => !callback(quad4, this), subject, predicate, object, graph);
     }
     // ### `some` executes the callback on all quads,
     // and returns `true` if it returns truthy for any of them.
     // Setting any field to `undefined` or `null` indicates a wildcard.
     some(callback, subject, predicate, object, graph) {
-      for (const quad5 of this.readQuads(subject, predicate, object, graph))
-        if (callback(quad5, this))
+      for (const quad4 of this.readQuads(subject, predicate, object, graph))
+        if (callback(quad4, this))
           return true;
       return false;
     }
@@ -10817,8 +10897,8 @@ var PonderSourceModules = (() => {
     // Setting any field to `undefined` or `null` indicates a wildcard.
     forGraphs(callback, subject, predicate, object) {
       for (const graph in this._graphs) {
-        this.some((quad5) => {
-          callback(quad5.graph);
+        this.some((quad4) => {
+          callback(quad4.graph);
           return true;
         }, subject, predicate, object, this._termFromId(this._entities[graph]));
       }
@@ -10846,41 +10926,41 @@ var PonderSourceModules = (() => {
         while (current && !malformed) {
           const objectQuads = this.getQuads(null, null, current, null);
           const subjectQuads = this.getQuads(current, null, null, null);
-          let quad5, first = null, rest = null, parent = null;
+          let quad4, first = null, rest = null, parent = null;
           for (let i = 0; i < subjectQuads.length && !malformed; i++) {
-            quad5 = subjectQuads[i];
-            if (!quad5.graph.equals(graph))
+            quad4 = subjectQuads[i];
+            if (!quad4.graph.equals(graph))
               malformed = onError(current, "not confined to single graph");
             else if (head)
               malformed = onError(current, "has non-list arcs out");
-            else if (quad5.predicate.value === IRIs_default.rdf.first) {
+            else if (quad4.predicate.value === IRIs_default.rdf.first) {
               if (first)
                 malformed = onError(current, "has multiple rdf:first arcs");
               else
-                toRemove.push(first = quad5);
-            } else if (quad5.predicate.value === IRIs_default.rdf.rest) {
+                toRemove.push(first = quad4);
+            } else if (quad4.predicate.value === IRIs_default.rdf.rest) {
               if (rest)
                 malformed = onError(current, "has multiple rdf:rest arcs");
               else
-                toRemove.push(rest = quad5);
+                toRemove.push(rest = quad4);
             } else if (objectQuads.length)
               malformed = onError(current, "can't be subject and object");
             else {
-              head = quad5;
+              head = quad4;
               headPos = "subject";
             }
           }
           for (let i = 0; i < objectQuads.length && !malformed; ++i) {
-            quad5 = objectQuads[i];
+            quad4 = objectQuads[i];
             if (head)
               malformed = onError(current, "can't have coreferences");
-            else if (quad5.predicate.value === IRIs_default.rdf.rest) {
+            else if (quad4.predicate.value === IRIs_default.rdf.rest) {
               if (parent)
                 malformed = onError(current, "has incoming rdf:rest arcs");
               else
-                parent = quad5;
+                parent = quad4;
             } else {
-              head = quad5;
+              head = quad4;
               headPos = "object";
             }
           }
@@ -10916,8 +10996,8 @@ var PonderSourceModules = (() => {
           this._size = null;
         }
       } else {
-        for (const quad5 of quads)
-          this.add(quad5);
+        for (const quad4 of quads)
+          this.add(quad4);
       }
       return this;
     }
@@ -10933,7 +11013,7 @@ var PonderSourceModules = (() => {
       if (other === this)
         return true;
       if (!(other instanceof _N3Store) || this._entityIndex !== other._entityIndex)
-        return other.every((quad5) => this.has(quad5));
+        return other.every((quad4) => this.has(quad4));
       const g1 = this._graphs, g2 = other._graphs;
       let s1, s2, p1, p2, o1;
       for (const graph in g2) {
@@ -10962,8 +11042,8 @@ var PonderSourceModules = (() => {
      * @param graph     The optional exact graph to match.
      */
     deleteMatches(subject, predicate, object, graph) {
-      for (const quad5 of this.match(subject, predicate, object, graph))
-        this.removeQuad(quad5);
+      for (const quad4 of this.match(subject, predicate, object, graph))
+        this.removeQuad(quad4);
       return this;
     }
     /**
@@ -10983,7 +11063,7 @@ var PonderSourceModules = (() => {
         }
         return store;
       }
-      return this.filter((quad5) => !other.has(quad5));
+      return this.filter((quad4) => !other.has(quad4));
     }
     /**
      * Returns true if the current dataset contains the same graph structure as the given dataset.
@@ -11002,9 +11082,9 @@ var PonderSourceModules = (() => {
      */
     filter(iteratee) {
       const store = new _N3Store({ entityIndex: this._entityIndex });
-      for (const quad5 of this)
-        if (iteratee(quad5, this))
-          store.add(quad5);
+      for (const quad4 of this)
+        if (iteratee(quad4, this))
+          store.add(quad4);
       return store;
     }
     /**
@@ -11027,15 +11107,15 @@ var PonderSourceModules = (() => {
         }
         return store;
       }
-      return this.filter((quad5) => other.has(quad5));
+      return this.filter((quad4) => other.has(quad4));
     }
     /**
      * Returns a new dataset containing all quads returned by applying `iteratee` to each quad in the current dataset.
      */
     map(iteratee) {
       const store = new _N3Store({ entityIndex: this._entityIndex });
-      for (const quad5 of this)
-        store.add(iteratee(quad5, this));
+      for (const quad4 of this)
+        store.add(iteratee(quad4, this));
       return store;
     }
     /**
@@ -11050,8 +11130,8 @@ var PonderSourceModules = (() => {
     reduce(callback, initialValue) {
       const iter = this.readQuads();
       let accumulator = initialValue === void 0 ? iter.next().value : initialValue;
-      for (const quad5 of iter)
-        accumulator = callback(accumulator, quad5, this);
+      for (const quad4 of iter)
+        accumulator = callback(accumulator, quad4, this);
       return accumulator;
     }
     /**
@@ -11224,14 +11304,14 @@ var PonderSourceModules = (() => {
     toString() {
       return new N3Writer().quadsToString(this);
     }
-    add(quad5) {
-      return this.filtered.add(quad5);
+    add(quad4) {
+      return this.filtered.add(quad4);
     }
-    delete(quad5) {
-      return this.filtered.delete(quad5);
+    delete(quad4) {
+      return this.filtered.delete(quad4);
     }
-    has(quad5) {
-      return this.filtered.has(quad5);
+    has(quad4) {
+      return this.filtered.has(quad4);
     }
     match(subject, predicate, object, graph) {
       return new _DatasetCoreAndReadableStream(this.filtered, subject, predicate, object, graph, this.options);
@@ -11239,6 +11319,307 @@ var PonderSourceModules = (() => {
     *[Symbol.iterator]() {
       yield* this._filtered || this.n3Store.readQuads(this.subject, this.predicate, this.object, this.graph);
     }
+  };
+
+  // node_modules/n3/src/N3StoreFactory.js
+  var N3DatasetCoreFactory = class {
+    dataset(quads) {
+      return new N3Store(quads);
+    }
+  };
+
+  // node_modules/n3/src/N3Reasoner.js
+  function getRulesFromDataset(dataset) {
+    const rules = [];
+    for (const { subject, object } of dataset.match(null, N3DataFactory_default.namedNode("http://www.w3.org/2000/10/swap/log#implies"), null, N3DataFactory_default.defaultGraph())) {
+      const premise = [...dataset.match(null, null, null, subject)];
+      const conclusion = [...dataset.match(null, null, null, object)];
+      rules.push({ premise, conclusion });
+    }
+    return rules;
+  }
+  var N3Reasoner = class {
+    constructor(store) {
+      this._store = store;
+    }
+    _add(subject, predicate, object, graphItem, cb) {
+      if (!this._store._addToIndex(graphItem.subjects, subject, predicate, object)) return;
+      this._store._addToIndex(graphItem.predicates, predicate, object, subject);
+      this._store._addToIndex(graphItem.objects, object, subject, predicate);
+      cb();
+    }
+    // eslint-disable-next-line no-warning-comments
+    _evaluatePremise(rule, content, cb, i = 0) {
+      let v1, v2, value, index1, index2;
+      const [val0, val1, val2] = rule.premise[i].value, index = content[rule.premise[i].content];
+      const v0 = !(value = val0.value);
+      for (value in v0 ? index : { [value]: index[value] }) {
+        if (index1 = index[value]) {
+          if (v0) val0.value = Number(value);
+          v1 = !(value = val1.value);
+          for (value in v1 ? index1 : { [value]: index1[value] }) {
+            if (index2 = index1[value]) {
+              if (v1) val1.value = Number(value);
+              v2 = !(value = val2.value);
+              for (value in v2 ? index2 : { [value]: index2[value] }) {
+                if (v2) val2.value = Number(value);
+                if (i === rule.premise.length - 1)
+                  rule.conclusion.forEach((c) => {
+                    this._add(c.subject.value, c.predicate.value, c.object.value, content, () => {
+                      cb(c);
+                    });
+                  });
+                else
+                  this._evaluatePremise(rule, content, cb, i + 1);
+              }
+              if (v2) val2.value = null;
+            }
+          }
+          if (v1) val1.value = null;
+        }
+      }
+      if (v0) val0.value = null;
+    }
+    _evaluateRules(rules, content, cb) {
+      for (let i = 0; i < rules.length; i++) {
+        this._evaluatePremise(rules[i], content, cb);
+      }
+    }
+    // A naive reasoning algorithm where rules are just applied by repeatedly applying rules
+    // until no more evaluations are made
+    _reasonGraphNaive(rules, content) {
+      const newRules = [];
+      function addRule(conclusion) {
+        if (conclusion.next)
+          conclusion.next.forEach((rule) => {
+            newRules.push([conclusion.subject.value, conclusion.predicate.value, conclusion.object.value, rule]);
+          });
+      }
+      const addConclusions = (conclusion) => {
+        conclusion.forEach((c) => {
+          this._add(c.subject.value, c.predicate.value, c.object.value, content, () => {
+            addRule(c);
+          });
+        });
+      };
+      this._evaluateRules(rules, content, addRule);
+      let r;
+      while ((r = newRules.pop()) !== void 0) {
+        const [subject, predicate, object, rule] = r;
+        const v1 = rule.basePremise.subject.value;
+        if (!v1) rule.basePremise.subject.value = subject;
+        const v2 = rule.basePremise.predicate.value;
+        if (!v2) rule.basePremise.predicate.value = predicate;
+        const v3 = rule.basePremise.object.value;
+        if (!v3) rule.basePremise.object.value = object;
+        if (rule.premise.length === 0) {
+          addConclusions(rule.conclusion);
+        } else {
+          this._evaluatePremise(rule, content, addRule);
+        }
+        if (!v1) rule.basePremise.subject.value = null;
+        if (!v2) rule.basePremise.predicate.value = null;
+        if (!v3) rule.basePremise.object.value = null;
+      }
+    }
+    _createRule({ premise, conclusion }) {
+      const varMapping = {};
+      const toId = (value) => value.termType === "Variable" ? (
+        // If the term is a variable, then create an empty object that values can be placed into
+        varMapping[value.value] = varMapping[value.value] || {}
+      ) : (
+        // If the term is not a variable, then set the ID value
+        { value: this._store._termToNewNumericId(value) }
+      );
+      const t = (term) => ({ subject: toId(term.subject), predicate: toId(term.predicate), object: toId(term.object) });
+      return {
+        premise: premise.map((p) => t(p)),
+        conclusion: conclusion.map((p) => t(p)),
+        variables: Object.values(varMapping)
+      };
+    }
+    reason(rules) {
+      if (!Array.isArray(rules)) {
+        rules = getRulesFromDataset(rules);
+      }
+      rules = rules.map((rule) => this._createRule(rule));
+      for (const r1 of rules) {
+        for (const r2 of rules) {
+          for (let i = 0; i < r2.premise.length; i++) {
+            const p = r2.premise[i];
+            for (const c of r1.conclusion) {
+              if (termEq(p.subject, c.subject) && termEq(p.predicate, c.predicate) && termEq(p.object, c.object)) {
+                const set = /* @__PURE__ */ new Set();
+                const premise = [];
+                p.subject.value = p.subject.value || 1;
+                p.object.value = p.object.value || 1;
+                p.predicate.value = p.predicate.value || 1;
+                for (let j = 0; j < r2.premise.length; j++) {
+                  if (j !== i) {
+                    premise.push(getIndex(r2.premise[j], set));
+                  }
+                }
+                (c.next = c.next || []).push({
+                  premise,
+                  conclusion: r2.conclusion,
+                  // This is a single premise of the form { subject, predicate, object },
+                  // which we can use to instantiate the rule using the new data that was emitted
+                  basePremise: p
+                });
+              }
+              r2.variables.forEach((v) => {
+                v.value = null;
+              });
+            }
+          }
+        }
+      }
+      for (const rule of rules) {
+        const set = /* @__PURE__ */ new Set();
+        rule.premise = rule.premise.map((p) => getIndex(p, set));
+      }
+      const graphs = this._store._getGraphs();
+      for (const graphId in graphs) {
+        this._reasonGraphNaive(rules, graphs[graphId]);
+      }
+      this._store._size = null;
+    }
+  };
+  function getIndex({ subject, predicate, object }, set) {
+    const s = subject.value || set.has(subject) || (set.add(subject), false);
+    const p = predicate.value || set.has(predicate) || (set.add(predicate), false);
+    const o = object.value || set.has(object) || (set.add(object), false);
+    return !s && p ? { content: "predicates", value: [predicate, object, subject] } : o ? { content: "objects", value: [object, subject, predicate] } : { content: "subjects", value: [subject, predicate, object] };
+  }
+  function termEq(t1, t2) {
+    if (t1.value === null) {
+      t1.value = t2.value;
+    }
+    return t1.value === t2.value;
+  }
+
+  // node_modules/n3/src/N3StreamParser.js
+  var import_readable_stream2 = __toESM(require_browser3());
+  var N3StreamParser = class extends import_readable_stream2.Transform {
+    constructor(options) {
+      super({ decodeStrings: true });
+      this._readableState.objectMode = true;
+      const parser = new N3Parser(options);
+      let onData, onEnd;
+      const callbacks = {
+        // Handle quads by pushing them down the pipeline
+        onQuad: (error, quad4) => {
+          error && this.emit("error", error) || quad4 && this.push(quad4);
+        },
+        // Emit prefixes through the `prefix` event
+        onPrefix: (prefix2, uri) => {
+          this.emit("prefix", prefix2, uri);
+        }
+      };
+      if (options && options.comments)
+        callbacks.onComment = (comment) => {
+          this.emit("comment", comment);
+        };
+      parser.parse({
+        on: (event, callback) => {
+          switch (event) {
+            case "data":
+              onData = callback;
+              break;
+            case "end":
+              onEnd = callback;
+              break;
+          }
+        }
+      }, callbacks);
+      this._transform = (chunk, encoding, done) => {
+        onData(chunk);
+        done();
+      };
+      this._flush = (done) => {
+        onEnd();
+        done();
+      };
+    }
+    // ### Parses a stream of strings
+    import(stream) {
+      stream.on("data", (chunk) => {
+        this.write(chunk);
+      });
+      stream.on("end", () => {
+        this.end();
+      });
+      stream.on("error", (error) => {
+        this.emit("error", error);
+      });
+      return this;
+    }
+  };
+
+  // node_modules/n3/src/N3StreamWriter.js
+  var import_readable_stream3 = __toESM(require_browser3());
+  var N3StreamWriter = class extends import_readable_stream3.Transform {
+    constructor(options) {
+      super({ encoding: "utf8", writableObjectMode: true });
+      const writer = this._writer = new N3Writer({
+        write: (quad4, encoding, callback) => {
+          this.push(quad4);
+          callback && callback();
+        },
+        end: (callback) => {
+          this.push(null);
+          callback && callback();
+        }
+      }, options);
+      this._transform = (quad4, encoding, done) => {
+        writer.addQuad(quad4, done);
+      };
+      this._flush = (done) => {
+        writer.end(done);
+      };
+    }
+    // ### Serializes a stream of quads
+    import(stream) {
+      stream.on("data", (quad4) => {
+        this.write(quad4);
+      });
+      stream.on("end", () => {
+        this.end();
+      });
+      stream.on("error", (error) => {
+        this.emit("error", error);
+      });
+      stream.on("prefix", (prefix2, iri) => {
+        this._writer.addPrefix(prefix2, iri);
+      });
+      return this;
+    }
+  };
+
+  // node_modules/n3/src/index.js
+  var src_default = {
+    Lexer: N3Lexer,
+    Parser: N3Parser,
+    Writer: N3Writer,
+    Store: N3Store,
+    StoreFactory: N3DatasetCoreFactory,
+    EntityIndex: N3EntityIndex,
+    StreamParser: N3StreamParser,
+    StreamWriter: N3StreamWriter,
+    Util: N3Util_exports,
+    Reasoner: N3Reasoner,
+    BaseIRI,
+    DataFactory: N3DataFactory_default,
+    Term,
+    NamedNode,
+    Literal,
+    BlankNode,
+    Variable,
+    DefaultGraph,
+    Quad,
+    Triple: Quad,
+    termFromId,
+    termToId
   };
 
   // src/public-resources.js
@@ -11668,17 +12049,17 @@ var PonderSourceModules = (() => {
     var _a;
     const nodes2 = /* @__PURE__ */ new Map();
     const id = (term) => term.termType === "BlankNode" ? "_:" + term.value : term.value;
-    for (const quad5 of new N3Parser({ baseIRI }).parse(turtle2)) {
-      const subject = id(quad5.subject);
+    for (const quad4 of new N3Parser({ baseIRI }).parse(turtle2)) {
+      const subject = id(quad4.subject);
       if (!nodes2.has(subject)) nodes2.set(subject, { "@id": subject });
       const node = nodes2.get(subject);
-      if (quad5.predicate.value === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" && quad5.object.termType === "NamedNode") {
-        (node["@type"] || (node["@type"] = [])).push(quad5.object.value);
+      if (quad4.predicate.value === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" && quad4.object.termType === "NamedNode") {
+        (node["@type"] || (node["@type"] = [])).push(quad4.object.value);
         continue;
       }
-      const object = quad5.object;
+      const object = quad4.object;
       const value = object.termType === "Literal" ? { "@value": object.value, ...object.language ? { "@language": object.language } : { "@type": object.datatype.value } } : { "@id": id(object) };
-      (node[_a = quad5.predicate.value] || (node[_a] = [])).push(value);
+      (node[_a = quad4.predicate.value] || (node[_a] = [])).push(value);
     }
     return [...nodes2.values()];
   }
@@ -18723,16 +19104,16 @@ var PonderSourceModules = (() => {
      * @return {Object}
      */
     toJSON() {
-      function toJSON2(item) {
+      function toJSON(item) {
         return item.toJSON();
       }
       let result = /* @__PURE__ */ Object.create(null);
-      result.ruleIterators = this.ruleIterators.map(toJSON2);
+      result.ruleIterators = this.ruleIterators.map(toJSON);
       if (this.ruleDates) {
-        result.ruleDates = this.ruleDates.map(toJSON2);
+        result.ruleDates = this.ruleDates.map(toJSON);
       }
       if (this.exDates) {
-        result.exDates = this.exDates.map(toJSON2);
+        result.exDates = this.exDates.map(toJSON);
       }
       result.ruleDateInc = this.ruleDateInc;
       result.exDateInc = this.exDateInc;
@@ -19548,332 +19929,342 @@ ${fieldMappings.map((field) => `  <${field[vocabulary]}> ${["start", "end", "rec
     }))
   ];
 
-  // ../calendar/vanilla/src/index.js
-  var { namedNode: namedNode5, literal: literal2, quad: quad4, defaultGraph: defaultGraph2, blankNode: blankNode2 } = N3DataFactory_default;
-  var XSD2 = "http://www.w3.org/2001/XMLSchema#";
-  var TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-  var META = "x-pondersource-calendar-sources";
-  var timed = (name) => ["start", "end", "recurrenceId"].includes(name);
-  var clone2 = (value) => structuredClone(value);
-  var sourcesOf = (value) => {
-    if (value === void 0) return {};
-    if (!value || typeof value !== "object" || Array.isArray(value)) throw Error("Invalid calendar source envelope");
-    return clone2(value);
-  };
-  function validateEvent(event) {
-    if (!event || typeof event.uid !== "string" || !event.uid || !event.start) throw Error("A calendar event needs a UID and start");
-    for (const field of ["title", "description", "location"]) if (event[field] !== void 0 && typeof event[field] !== "string") throw Error("Invalid " + field);
-    for (const value of [event.start, event.end, event.recurrenceId, ...event.recurrence?.dates || [], ...event.recurrence?.excludedDates || []].filter(Boolean)) {
-      if (typeof value.value !== "string" || !/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})?)?$/.test(value.value)) throw Error("Invalid calendar date");
-      const [year, month, day] = value.value.slice(0, 10).split("-").map(Number);
-      const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
-      if (month < 1 || month > 12 || day < 1 || day > [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1]) throw Error("Invalid calendar date");
-      if (value.value.includes("T") && (+value.value.slice(11, 13) > 23 || +value.value.slice(14, 16) > 59 || +value.value.slice(17, 19) > 59)) throw Error("Invalid calendar time");
-      if (value.timezone !== void 0 && (typeof value.timezone !== "string" || !value.timezone || !value.value.includes("T") || /[Z+-]/.test(value.value.slice(19)))) throw Error("A timezone requires a floating local date-time");
-    }
-    if (event.end && event.end.value.length === 10 !== (event.start.value.length === 10)) throw Error("Start and end must both be dates or both date-times");
-    if (event.duration !== void 0) {
-      if (event.end) throw Error("Use either end or duration, not both");
-      if (typeof event.duration !== "string") throw Error("Invalid duration");
-      ICALmodule.Duration.fromString(event.duration);
-    }
-    if (event.recurrence?.rules) for (const rule of event.recurrence.rules) ICALmodule.Recur.fromString(rule);
-    return event;
-  }
-  function fromJSON(document2) {
-    const value = typeof document2 === "string" ? JSON.parse(document2) : clone2(document2);
-    const sources = sourcesOf(value.sources);
-    delete value.sources;
-    return validateEvent({ ...value, sources: { ...sources, json: value } });
-  }
-  function toJSON(event) {
-    validateEvent(event);
-    const original = clone2(event.sources?.json || {});
-    for (const name of [...fieldMappings.map((field) => field.field), "recurrence"]) delete original[name];
-    return { ...original, ...clone2(event) };
-  }
-  function timeFromProperty(property) {
-    if (!property) return void 0;
-    const time = property.getFirstValue();
-    return { value: time.toString(), ...property.getParameter("tzid") ? { timezone: property.getParameter("tzid") } : {} };
-  }
-  function writeTime(component, name, value, parameters = {}) {
-    const property = new ICALmodule.Property(name);
-    const text = /[+-]\d{2}:\d{2}$/.test(value.value) ? new Date(value.value).toISOString().slice(0, 19) + "Z" : value.value;
-    property.setValue(ICALmodule.Time.fromString(text));
-    for (const [key, item] of Object.entries(parameters)) if (!["tzid", "value"].includes(key)) property.setParameter(key, item);
-    if (value.timezone) property.setParameter("tzid", value.timezone);
-    component.addProperty(property);
-  }
-  function fromICalendar(text) {
-    const calendar = new ICALmodule.Component(ICALmodule.parse(text));
-    if (calendar.name !== "vcalendar") throw Error("Expected a VCALENDAR document");
-    const events = calendar.getAllSubcomponents("vevent");
-    const envelopes = events.map((event) => {
-      const raw = event.getFirstPropertyValue(META);
-      event.removeAllProperties(META);
-      return raw ? sourcesOf(JSON.parse(raw)) : {};
-    });
-    const source = events.some((_event, index) => Object.keys(envelopes[index]).length) ? calendar.toString() : text;
-    return events.map((component, index) => {
-      const result = {};
-      for (const field of fieldMappings) {
-        const value = timed(field.field) ? timeFromProperty(component.getFirstProperty(field.ical)) : component.getFirstPropertyValue(field.ical);
-        if (value !== null && value !== void 0) result[field.field] = field.field === "duration" ? value.toString() : value;
+  // ../calendar/vanilla/src/codecs.js
+  function createCalendarCodecs(ICALJS, { Parser, Writer, DataFactory: DataFactory2 }) {
+    const { namedNode: namedNode5, literal: literal2, quad: quad4, defaultGraph: defaultGraph2, blankNode: blankNode2 } = DataFactory2;
+    const XSD2 = "http://www.w3.org/2001/XMLSchema#";
+    const TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    const META = "x-pondersource-calendar-sources";
+    const timed = (name) => ["start", "end", "recurrenceId"].includes(name);
+    const clone2 = (value) => structuredClone(value);
+    const sourcesOf = (value) => {
+      if (value === void 0) return {};
+      if (!value || typeof value !== "object" || Array.isArray(value)) throw Error("Invalid calendar source envelope");
+      return clone2(value);
+    };
+    function validateEvent(event) {
+      if (!event || typeof event.uid !== "string" || !event.uid || !event.start) throw Error("A calendar event needs a UID and start");
+      for (const field of ["title", "description", "location"]) if (event[field] !== void 0 && typeof event[field] !== "string") throw Error("Invalid " + field);
+      for (const value of [event.start, event.end, event.recurrenceId, ...event.recurrence?.dates || [], ...event.recurrence?.excludedDates || []].filter(Boolean)) {
+        if (typeof value.value !== "string" || !/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})?)?$/.test(value.value)) throw Error("Invalid calendar date");
+        const [year, month, day] = value.value.slice(0, 10).split("-").map(Number);
+        const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+        if (month < 1 || month > 12 || day < 1 || day > [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1]) throw Error("Invalid calendar date");
+        if (value.value.includes("T") && (+value.value.slice(11, 13) > 23 || +value.value.slice(14, 16) > 59 || +value.value.slice(17, 19) > 59)) throw Error("Invalid calendar time");
+        if (value.timezone !== void 0 && (typeof value.timezone !== "string" || !value.timezone || !value.value.includes("T") || /[Z+-]/.test(value.value.slice(19)))) throw Error("A timezone requires a floating local date-time");
       }
-      const rules = component.getAllProperties("rrule").map((property) => property.getFirstValue().toString());
-      const dates = (name) => component.getAllProperties(name).flatMap((property) => property.getValues().map((time) => ({ value: time.toString(), ...property.getParameter("tzid") ? { timezone: property.getParameter("tzid") } : {} })));
-      result.recurrence = { rules, dates: dates("rdate"), excludedDates: dates("exdate") };
-      result.sources = { ...envelopes[index], icalendar: { text: source, index } };
-      return validateEvent(result);
-    });
-  }
-  function toICalendar(event) {
-    validateEvent(event);
-    const source = event.sources?.icalendar;
-    const calendar = source ? new ICALmodule.Component(ICALmodule.parse(source.text)) : new ICALmodule.Component("vcalendar");
-    if (!source) {
-      calendar.addPropertyWithValue("version", "2.0");
-      calendar.addPropertyWithValue("prodid", "-//Ponder Source//Calendar module//EN");
-    }
-    const component = source ? calendar.getAllSubcomponents("vevent")[source.index] : new ICALmodule.Component("vevent");
-    if (!component) throw Error("Calendar source event is missing");
-    if (!source) {
-      calendar.addSubcomponent(component);
-      component.addPropertyWithValue("dtstamp", ICALmodule.Time.fromJSDate(/* @__PURE__ */ new Date(), true));
-    }
-    for (const field of fieldMappings) {
-      const parameters = clone2(component.getFirstProperty(field.ical)?.toJSON()[1] || {});
-      component.removeAllProperties(field.ical);
-      if (event[field.field] === void 0) continue;
-      if (timed(field.field)) writeTime(component, field.ical, event[field.field], parameters);
-      else {
-        const property = new ICALmodule.Property(field.ical);
-        property.setValue(field.field === "duration" ? ICALmodule.Duration.fromString(event[field.field]) : event[field.field]);
-        for (const [key, item] of Object.entries(parameters)) property.setParameter(key, item);
-        component.addProperty(property);
+      if (event.end && event.end.value.length === 10 !== (event.start.value.length === 10)) throw Error("Start and end must both be dates or both date-times");
+      if (event.duration !== void 0) {
+        if (event.end) throw Error("Use either end or duration, not both");
+        if (typeof event.duration !== "string") throw Error("Invalid duration");
+        ICALJS.Duration.fromString(event.duration);
       }
+      if (event.recurrence?.rules) for (const rule of event.recurrence.rules) ICALJS.Recur.fromString(rule);
+      return event;
     }
-    if (event.end) component.removeAllProperties("duration");
-    const before = source ? fromICalendar(source.text)[source.index].recurrence : void 0;
-    if (!source || JSON.stringify(before) !== JSON.stringify(event.recurrence)) {
-      for (const key of ["rrule", "rdate", "exdate"]) component.removeAllProperties(key);
-      for (const rule of event.recurrence?.rules || []) component.addPropertyWithValue("rrule", ICALmodule.Recur.fromString(rule));
-      for (const [key, name] of [["dates", "rdate"], ["excludedDates", "exdate"]]) for (const time of event.recurrence?.[key] || []) writeTime(component, name, time);
+    function fromJSON(document2) {
+      const value = typeof document2 === "string" ? JSON.parse(document2) : clone2(document2);
+      const sources = sourcesOf(value.sources);
+      delete value.sources;
+      return validateEvent({ ...value, sources: { ...sources, json: value } });
     }
-    component.removeAllProperties(META);
-    component.addPropertyWithValue(META, JSON.stringify(event.sources || {}));
-    return calendar.toString();
-  }
-  var nquads = (quads) => new N3Writer({ format: "N-Quads" }).quadsToString(quads);
-  var parse2 = (text, baseIRI) => new N3Parser({ baseIRI, blankNodePrefix: "" }).parse(text);
-  var termKey = (term) => term.termType + ":" + term.value;
-  var storedTerm = (term) => ({ type: term.termType, value: term.value });
-  var restoreTerm = (term) => term.type === "BlankNode" ? blankNode2(term.value) : term.type === "DefaultGraph" ? defaultGraph2() : namedNode5(term.value);
-  function fromRDF(text, { baseIRI } = {}) {
-    const quads = parse2(text, baseIRI), groups = /* @__PURE__ */ new Map();
-    for (const statement of quads) if (statement.predicate.value === TYPE && [ICAL + "Vevent", SCHEMA + "Event", "http://schema.org/Event"].includes(statement.object.value)) {
-      const key = termKey(statement.subject) + "|" + termKey(statement.graph);
-      if (!groups.has(key)) groups.set(key, { subject: statement.subject, graph: statement.graph, vocabulary: statement.object.value === ICAL + "Vevent" ? "rdf" : statement.object.value === SCHEMA + "Event" ? "schema" : "schemaHttp" });
+    function toJSON(event) {
+      validateEvent(event);
+      const original = clone2(event.sources?.json || {});
+      for (const name of [...fieldMappings.map((field) => field.field), "recurrence"]) delete original[name];
+      return { ...original, ...clone2(event) };
     }
-    return [...groups.values()].map(({ subject, graph, vocabulary }) => {
-      const own = quads.filter((q) => q.subject.equals(subject) && q.graph.equals(graph));
-      const envelope = own.find((q) => q.predicate.value === SOURCE_KEY && q.object.termType === "Literal");
-      const sources = envelope ? sourcesOf(JSON.parse(envelope.object.value)) : {};
-      const result = {};
-      const selected = {};
+    function timeFromProperty(property) {
+      if (!property) return void 0;
+      const time = property.getFirstValue();
+      return { value: time.toString(), ...property.getParameter("tzid") ? { timezone: property.getParameter("tzid") } : {} };
+    }
+    function writeTime(component, name, value, parameters = {}) {
+      const property = new ICALJS.Property(name);
+      const text = /[+-]\d{2}:\d{2}$/.test(value.value) ? new Date(value.value).toISOString().slice(0, 19) + "Z" : value.value;
+      property.setValue(ICALJS.Time.fromString(text));
+      for (const [key, item] of Object.entries(parameters)) if (!["tzid", "value"].includes(key)) property.setParameter(key, item);
+      if (value.timezone) property.setParameter("tzid", value.timezone);
+      component.addProperty(property);
+    }
+    function fromICalendar(text) {
+      const calendar = new ICALJS.Component(ICALJS.parse(text));
+      if (calendar.name !== "vcalendar") throw Error("Expected a VCALENDAR document");
+      const events = calendar.getAllSubcomponents("vevent");
+      const envelopes = events.map((event) => {
+        const raw = event.getFirstPropertyValue(META);
+        event.removeAllProperties(META);
+        return raw ? sourcesOf(JSON.parse(raw)) : {};
+      });
+      const source = events.some((_event, index) => Object.keys(envelopes[index]).length) ? calendar.toString() : text;
+      return events.map((component, index) => {
+        const result = {};
+        for (const field of fieldMappings) {
+          const value = timed(field.field) ? timeFromProperty(component.getFirstProperty(field.ical)) : component.getFirstPropertyValue(field.ical);
+          if (value !== null && value !== void 0) result[field.field] = field.field === "duration" ? value.toString() : value;
+        }
+        const rules = component.getAllProperties("rrule").map((property) => property.getFirstValue().toString());
+        const dates = (name) => component.getAllProperties(name).flatMap((property) => property.getValues().map((time) => ({ value: time.toString(), ...property.getParameter("tzid") ? { timezone: property.getParameter("tzid") } : {} })));
+        result.recurrence = { rules, dates: dates("rdate"), excludedDates: dates("exdate") };
+        result.sources = { ...envelopes[index], icalendar: { text: source, index } };
+        return validateEvent(result);
+      });
+    }
+    function toICalendar(event) {
+      validateEvent(event);
+      const source = event.sources?.icalendar;
+      const calendar = source ? new ICALJS.Component(ICALJS.parse(source.text)) : new ICALJS.Component("vcalendar");
+      if (!source) {
+        calendar.addPropertyWithValue("version", "2.0");
+        calendar.addPropertyWithValue("prodid", "-//Ponder Source//Calendar module//EN");
+      }
+      const component = source ? calendar.getAllSubcomponents("vevent")[source.index] : new ICALJS.Component("vevent");
+      if (!component) throw Error("Calendar source event is missing");
+      if (!source) {
+        calendar.addSubcomponent(component);
+        component.addPropertyWithValue("dtstamp", ICALJS.Time.fromJSDate(/* @__PURE__ */ new Date(), true));
+      }
       for (const field of fieldMappings) {
-        const statement = own.find((q) => q.predicate.value === field[vocabulary] && q.object.termType === "Literal");
-        if (!statement) continue;
-        selected[field.field] = own.filter((q) => q.predicate.value === field[vocabulary]).indexOf(statement);
+        const parameters = clone2(component.getFirstProperty(field.ical)?.toJSON()[1] || {});
+        component.removeAllProperties(field.ical);
+        if (event[field.field] === void 0) continue;
+        if (timed(field.field)) writeTime(component, field.ical, event[field.field], parameters);
+        else {
+          const property = new ICALJS.Property(field.ical);
+          property.setValue(field.field === "duration" ? ICALJS.Duration.fromString(event[field.field]) : event[field.field]);
+          for (const [key, item] of Object.entries(parameters)) property.setParameter(key, item);
+          component.addProperty(property);
+        }
+      }
+      if (event.end) component.removeAllProperties("duration");
+      const before = source ? fromICalendar(source.text)[source.index].recurrence : void 0;
+      if (!source || JSON.stringify(before) !== JSON.stringify(event.recurrence)) {
+        for (const key of ["rrule", "rdate", "exdate"]) component.removeAllProperties(key);
+        for (const rule of event.recurrence?.rules || []) component.addPropertyWithValue("rrule", ICALJS.Recur.fromString(rule));
+        for (const [key, name] of [["dates", "rdate"], ["excludedDates", "exdate"]]) for (const time of event.recurrence?.[key] || []) writeTime(component, name, time);
+      }
+      component.removeAllProperties(META);
+      component.addPropertyWithValue(META, JSON.stringify(event.sources || {}));
+      return calendar.toString();
+    }
+    const nquads = (quads) => new Writer({ format: "N-Quads" }).quadsToString(quads);
+    const parse2 = (text, baseIRI) => new Parser({ baseIRI, blankNodePrefix: "" }).parse(text);
+    const termKey = (term) => term.termType + ":" + term.value;
+    const storedTerm = (term) => ({ type: term.termType, value: term.value });
+    const restoreTerm = (term) => term.type === "BlankNode" ? blankNode2(term.value) : term.type === "DefaultGraph" ? defaultGraph2() : namedNode5(term.value);
+    function fromRDF(text, { baseIRI } = {}) {
+      const quads = parse2(text, baseIRI), groups = /* @__PURE__ */ new Map();
+      for (const statement of quads) if (statement.predicate.value === TYPE && [ICAL + "Vevent", SCHEMA + "Event", "http://schema.org/Event"].includes(statement.object.value)) {
+        const key = termKey(statement.subject) + "|" + termKey(statement.graph);
+        if (!groups.has(key)) groups.set(key, { subject: statement.subject, graph: statement.graph, vocabulary: statement.object.value === ICAL + "Vevent" ? "rdf" : statement.object.value === SCHEMA + "Event" ? "schema" : "schemaHttp" });
+      }
+      return [...groups.values()].map(({ subject, graph, vocabulary }) => {
+        const own = quads.filter((q) => q.subject.equals(subject) && q.graph.equals(graph));
+        const envelope = own.find((q) => q.predicate.value === SOURCE_KEY && q.object.termType === "Literal");
+        const sources = envelope ? sourcesOf(JSON.parse(envelope.object.value)) : {};
+        const result = {};
+        const selected = {};
+        for (const field of fieldMappings) {
+          const statement = own.find((q) => q.predicate.value === field[vocabulary] && q.object.termType === "Literal");
+          if (!statement) continue;
+          selected[field.field] = own.filter((q) => q.predicate.value === field[vocabulary]).indexOf(statement);
+          if (timed(field.field)) {
+            const timezone = own.find((q) => q.predicate.value === CAL + field.field + "Timezone")?.object.value;
+            result[field.field] = { value: statement.object.value, ...timezone ? { timezone } : {} };
+          } else result[field.field] = statement.object.value;
+        }
+        result.uid || (result.uid = subject.termType === "NamedNode" ? subject.value : void 0);
+        const recurrence = own.find((q) => q.predicate.value === CAL + "recurrence");
+        if (recurrence) result.recurrence = JSON.parse(recurrence.object.value);
+        else {
+          const rules = own.filter((q) => q.predicate.value === ICAL + "rrule" && q.object.termType === "Literal").map((q) => q.object.value);
+          if (rules.length) result.recurrence = { rules };
+        }
+        const clean = quads.filter((q) => q.predicate.value !== SOURCE_KEY);
+        result.sources = { ...sources, rdf: { text: nquads(clean), subject: storedTerm(subject), graph: storedTerm(graph), vocabulary, selected } };
+        return validateEvent(result);
+      });
+    }
+    function toRDF(event, { id } = {}) {
+      validateEvent(event);
+      const source = event.sources?.rdf;
+      const subject = source ? restoreTerm(source.subject) : namedNode5(id || "urn:calendar:" + encodeURIComponent(event.uid) + (event.recurrenceId ? ":" + encodeURIComponent(event.recurrenceId.value) : ""));
+      const graph = source ? restoreTerm(source.graph) : defaultGraph2();
+      const vocabulary = source?.vocabulary || "rdf";
+      let quads = source ? parse2(source.text) : [quad4(subject, namedNode5(TYPE), namedNode5(ICAL + "Vevent"), graph)];
+      const own = (q) => q.subject.equals(subject) && q.graph.equals(graph);
+      for (const field of fieldMappings) {
+        const predicate = field[vocabulary], existing = quads.filter((q) => own(q) && q.predicate.value === predicate);
+        const selected = existing[source?.selected?.[field.field] ?? 0];
+        if (selected?.object.termType === "Literal" && event[field.field] === void 0) quads = quads.filter((q) => q !== selected);
+        else if (selected?.object.termType !== "Literal" && existing.length && event[field.field] !== void 0) throw Error("Cannot replace a structured RDF " + field.field + " implicitly");
+        if (event[field.field] !== void 0) {
+          const value = event[field.field];
+          const object = timed(field.field) ? literal2(value.value, namedNode5(XSD2 + (value.value.length === 10 ? "date" : "dateTime"))) : literal2(value, selected?.object.language || selected?.object.datatype);
+          const statement = quad4(subject, namedNode5(predicate), object, graph);
+          if (selected?.object.termType === "Literal") quads[quads.indexOf(selected)] = statement;
+          else quads.push(statement);
+        }
         if (timed(field.field)) {
-          const timezone = own.find((q) => q.predicate.value === CAL + field.field + "Timezone")?.object.value;
-          result[field.field] = { value: statement.object.value, ...timezone ? { timezone } : {} };
-        } else result[field.field] = statement.object.value;
+          quads = quads.filter((q) => !(own(q) && q.predicate.value === CAL + field.field + "Timezone"));
+          if (event[field.field]?.timezone) quads.push(quad4(subject, namedNode5(CAL + field.field + "Timezone"), literal2(event[field.field].timezone), graph));
+        }
       }
-      result.uid || (result.uid = subject.termType === "NamedNode" ? subject.value : void 0);
-      const recurrence = own.find((q) => q.predicate.value === CAL + "recurrence");
-      if (recurrence) result.recurrence = JSON.parse(recurrence.object.value);
-      else {
-        const rules = own.filter((q) => q.predicate.value === ICAL + "rrule" && q.object.termType === "Literal").map((q) => q.object.value);
-        if (rules.length) result.recurrence = { rules };
+      quads = quads.filter((q) => !(own(q) && [CAL + "recurrence", SOURCE_KEY].includes(q.predicate.value)));
+      if (event.recurrence) {
+        quads = quads.filter((q) => !(own(q) && q.predicate.value === ICAL + "rrule" && q.object.termType === "Literal"));
+        for (const rule of event.recurrence.rules || []) quads.push(quad4(subject, namedNode5(ICAL + "rrule"), literal2(rule), graph));
+        quads.push(quad4(subject, namedNode5(CAL + "recurrence"), literal2(JSON.stringify(event.recurrence)), graph));
       }
-      const clean = quads.filter((q) => q.predicate.value !== SOURCE_KEY);
-      result.sources = { ...sources, rdf: { text: nquads(clean), subject: storedTerm(subject), graph: storedTerm(graph), vocabulary, selected } };
+      quads.push(quad4(subject, namedNode5(SOURCE_KEY), literal2(JSON.stringify(event.sources || {})), graph));
+      return nquads(quads);
+    }
+    function fromAtomic(document2) {
+      const value = clone2(document2), sources = sourcesOf(value[SOURCE_KEY]);
+      delete value[SOURCE_KEY];
+      const result = {};
+      for (const field of fieldMappings) if (value[field.atomic] !== void 0) {
+        result[field.field] = timed(field.field) ? { value: value[field.atomic], ...value[CAL + field.field + "Timezone"] ? { timezone: value[CAL + field.field + "Timezone"] } : {} } : value[field.atomic];
+      }
+      if (value[CAL + "recurrence"]) result.recurrence = clone2(value[CAL + "recurrence"]);
+      result.sources = { ...sources, atomic: value };
       return validateEvent(result);
-    });
-  }
-  function toRDF(event, { id } = {}) {
-    validateEvent(event);
-    const source = event.sources?.rdf;
-    const subject = source ? restoreTerm(source.subject) : namedNode5(id || "urn:calendar:" + encodeURIComponent(event.uid) + (event.recurrenceId ? ":" + encodeURIComponent(event.recurrenceId.value) : ""));
-    const graph = source ? restoreTerm(source.graph) : defaultGraph2();
-    const vocabulary = source?.vocabulary || "rdf";
-    let quads = source ? parse2(source.text) : [quad4(subject, namedNode5(TYPE), namedNode5(ICAL + "Vevent"), graph)];
-    const own = (q) => q.subject.equals(subject) && q.graph.equals(graph);
-    for (const field of fieldMappings) {
-      const predicate = field[vocabulary], existing = quads.filter((q) => own(q) && q.predicate.value === predicate);
-      const selected = existing[source?.selected?.[field.field] ?? 0];
-      if (selected?.object.termType === "Literal" && event[field.field] === void 0) quads = quads.filter((q) => q !== selected);
-      else if (selected?.object.termType !== "Literal" && existing.length && event[field.field] !== void 0) throw Error("Cannot replace a structured RDF " + field.field + " implicitly");
-      if (event[field.field] !== void 0) {
-        const value = event[field.field];
-        const object = timed(field.field) ? literal2(value.value, namedNode5(XSD2 + (value.value.length === 10 ? "date" : "dateTime"))) : literal2(value, selected?.object.language || selected?.object.datatype);
-        const statement = quad4(subject, namedNode5(predicate), object, graph);
-        if (selected?.object.termType === "Literal") quads[quads.indexOf(selected)] = statement;
-        else quads.push(statement);
+    }
+    function toAtomic(event, { id } = {}) {
+      validateEvent(event);
+      const result = clone2(event.sources?.atomic || {});
+      result["@id"] = id || result["@id"];
+      if (!result["@id"] || !/^https?:\/\//.test(result["@id"])) throw Error("An Atomic resource URL is required");
+      const isA = ATOMIC + "properties/isA";
+      result[isA] = [.../* @__PURE__ */ new Set([...result[isA] || [], CAL + "Event"])];
+      for (const field of fieldMappings) {
+        delete result[field.atomic];
+        delete result[CAL + field.field + "Timezone"];
+        if (event[field.field] !== void 0) result[field.atomic] = timed(field.field) ? event[field.field].value : event[field.field];
+        if (timed(field.field) && event[field.field]?.timezone) result[CAL + field.field + "Timezone"] = event[field.field].timezone;
       }
-      if (timed(field.field)) {
-        quads = quads.filter((q) => !(own(q) && q.predicate.value === CAL + field.field + "Timezone"));
-        if (event[field.field]?.timezone) quads.push(quad4(subject, namedNode5(CAL + field.field + "Timezone"), literal2(event[field.field].timezone), graph));
-      }
+      delete result[CAL + "recurrence"];
+      if (event.recurrence) result[CAL + "recurrence"] = clone2(event.recurrence);
+      result[SOURCE_KEY] = clone2(event.sources || {});
+      return result;
     }
-    quads = quads.filter((q) => !(own(q) && [CAL + "recurrence", SOURCE_KEY].includes(q.predicate.value)));
-    if (event.recurrence) {
-      quads = quads.filter((q) => !(own(q) && q.predicate.value === ICAL + "rrule" && q.object.termType === "Literal"));
-      for (const rule of event.recurrence.rules || []) quads.push(quad4(subject, namedNode5(ICAL + "rrule"), literal2(rule), graph));
-      quads.push(quad4(subject, namedNode5(CAL + "recurrence"), literal2(JSON.stringify(event.recurrence)), graph));
+    function calendarModule2(client) {
+      client.declareType("event", calendarSchema);
+      const path = (id) => "events/" + encodeURIComponent(id) + ".json";
+      return {
+        calendarSchema,
+        calendarShape,
+        atomicSchema,
+        fieldMappings,
+        fromJSON,
+        toJSON,
+        fromRDF,
+        toRDF,
+        fromAtomic,
+        toAtomic,
+        fromICalendar,
+        toICalendar,
+        async get(id) {
+          const event = await client.getObject(path(id));
+          return event ? fromJSON(event) : void 0;
+        },
+        async getAll() {
+          const all = await client.getAll("events/");
+          return Object.fromEntries(Object.entries(all || {}).map(([key, event]) => [decodeURIComponent(key.slice(0, -5)), fromJSON(event)]));
+        },
+        async create(event, id = crypto.randomUUID()) {
+          if (await client.getObject(path(id))) throw Error("Calendar event already exists");
+          await client.storeObject("event", path(id), toJSON(event));
+          return id;
+        },
+        async update(id, changes) {
+          const previous = await this.get(id);
+          if (!previous) throw Error("Calendar event does not exist");
+          const next = { ...previous, ...clone2(changes) };
+          await client.storeObject("event", path(id), toJSON(next));
+          return next;
+        },
+        async delete(id) {
+          await client.remove(path(id));
+        }
+      };
     }
-    quads.push(quad4(subject, namedNode5(SOURCE_KEY), literal2(JSON.stringify(event.sources || {})), graph));
-    return nquads(quads);
+    return { validateEvent, fromJSON, toJSON, fromICalendar, toICalendar, fromRDF, toRDF, fromAtomic, toAtomic, calendarModule: calendarModule2 };
   }
-  function fromAtomic(document2) {
-    const value = clone2(document2), sources = sourcesOf(value[SOURCE_KEY]);
-    delete value[SOURCE_KEY];
-    const result = {};
-    for (const field of fieldMappings) if (value[field.atomic] !== void 0) {
-      result[field.field] = timed(field.field) ? { value: value[field.atomic], ...value[CAL + field.field + "Timezone"] ? { timezone: value[CAL + field.field + "Timezone"] } : {} } : value[field.atomic];
-    }
-    if (value[CAL + "recurrence"]) result.recurrence = clone2(value[CAL + "recurrence"]);
-    result.sources = { ...sources, atomic: value };
-    return validateEvent(result);
-  }
-  function toAtomic(event, { id } = {}) {
-    validateEvent(event);
-    const result = clone2(event.sources?.atomic || {});
-    result["@id"] = id || result["@id"];
-    if (!result["@id"] || !/^https?:\/\//.test(result["@id"])) throw Error("An Atomic resource URL is required");
-    const isA = ATOMIC + "properties/isA";
-    result[isA] = [.../* @__PURE__ */ new Set([...result[isA] || [], CAL + "Event"])];
-    for (const field of fieldMappings) {
-      delete result[field.atomic];
-      delete result[CAL + field.field + "Timezone"];
-      if (event[field.field] !== void 0) result[field.atomic] = timed(field.field) ? event[field.field].value : event[field.field];
-      if (timed(field.field) && event[field.field]?.timezone) result[CAL + field.field + "Timezone"] = event[field.field].timezone;
-    }
-    delete result[CAL + "recurrence"];
-    if (event.recurrence) result[CAL + "recurrence"] = clone2(event.recurrence);
-    result[SOURCE_KEY] = clone2(event.sources || {});
-    return result;
-  }
-  function calendarModule(client) {
-    client.declareType("event", calendarSchema);
-    const path = (id) => "events/" + encodeURIComponent(id) + ".json";
-    return {
-      calendarSchema,
-      calendarShape,
-      atomicSchema,
-      fieldMappings,
-      fromJSON,
-      toJSON,
-      fromRDF,
-      toRDF,
-      fromAtomic,
-      toAtomic,
-      fromICalendar,
-      toICalendar,
-      async get(id) {
-        const event = await client.getObject(path(id));
-        return event ? fromJSON(event) : void 0;
-      },
-      async getAll() {
-        const all = await client.getAll("events/");
-        return Object.fromEntries(Object.entries(all || {}).map(([key, event]) => [decodeURIComponent(key.slice(0, -5)), fromJSON(event)]));
-      },
-      async create(event, id = crypto.randomUUID()) {
-        if (await client.getObject(path(id))) throw Error("Calendar event already exists");
-        await client.storeObject("event", path(id), toJSON(event));
-        return id;
-      },
-      async update(id, changes) {
-        const previous = await this.get(id);
-        if (!previous) throw Error("Calendar event does not exist");
-        const next = { ...previous, ...clone2(changes) };
-        await client.storeObject("event", path(id), toJSON(next));
-        return next;
-      },
-      async delete(id) {
-        await client.remove(path(id));
-      }
+
+  // ../calendar/vanilla/src/rdf-factory.js
+  function createCalendarRDF({ fromRDF, toRDF, validateEvent }, Parser) {
+    return function calendarRDF2({ fetch, root }) {
+      const base = new URL(root);
+      if (!base.pathname.endsWith("/") || base.search || base.hash || base.username || base.password || !(base.protocol === "https:" || base.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(base.hostname))) throw Error("Choose an HTTPS calendar root (or loopback HTTP)");
+      const owned = (value) => {
+        const url = new URL(value, base);
+        if (!url.href.startsWith(base.href) || url.username || url.password || url.search || /%(?:2f|5c)/i.test(url.pathname)) throw Error("Calendar resource is outside the selected root");
+        return url;
+      };
+      const read = async (value) => {
+        const id = owned(value), url = new URL(id);
+        url.hash = "";
+        const response = await fetch(url.href, { headers: { Accept: "text/turtle, application/n-quads;q=0.9" } });
+        if (!response.ok) throw Error("Calendar read failed: " + response.status);
+        const events = fromRDF(await response.text(), { baseIRI: url.href });
+        const event = id.hash ? events.find((event2) => event2.sources.rdf.subject.value === id.href) : events.length === 1 ? events[0] : void 0;
+        if (!event) throw Error("Select a specific event in this RDF document");
+        return { event, events, url: url.href, etag: response.headers.get("ETag") };
+      };
+      const write = async (url, method, body, etag) => {
+        const response = await fetch(url, { method, headers: { "Content-Type": "application/n-quads", ...etag ? { "If-Match": etag } : { "If-None-Match": "*" } }, ...body === void 0 ? {} : { body } });
+        if (!response.ok) throw Error(response.status === 412 ? "Calendar changed; reload before retrying" : "Calendar write failed: " + response.status);
+      };
+      return {
+        async get(id) {
+          return (await read(id)).event;
+        },
+        async getAll(container = base.href) {
+          const url = owned(container);
+          url.hash = "";
+          const response = await fetch(url.href, { headers: { Accept: "text/turtle" } });
+          if (!response.ok) throw Error("Calendar listing failed: " + response.status);
+          const children = new Parser({ baseIRI: url.href }).parse(await response.text()).filter((q) => q.predicate.value === "http://www.w3.org/ns/ldp#contains" && q.object.termType === "NamedNode");
+          const result = {};
+          for (const child of children) {
+            const target = owned(child.object.value);
+            if (target.pathname.endsWith("/")) continue;
+            const document2 = await fetch(target.href, { headers: { Accept: "text/turtle, application/n-quads;q=0.9" } });
+            if (!document2.ok) throw Error("Calendar read failed: " + document2.status);
+            for (const event of fromRDF(await document2.text(), { baseIRI: target.href })) result[event.sources.rdf.subject.value] = event;
+          }
+          return result;
+        },
+        async create(event, id = new URL(crypto.randomUUID() + ".ttl#event", base).href) {
+          const subject = owned(id);
+          if (!subject.hash) subject.hash = "event";
+          const document2 = new URL(subject);
+          document2.hash = "";
+          await write(document2.href, "PUT", toRDF(event, { id: subject.href }));
+          return subject.href;
+        },
+        async update(id, changes) {
+          const current = await read(id);
+          if (!current.etag) throw Error("Calendar server did not provide an ETag; editing is blocked");
+          const next = validateEvent({ ...current.event, ...structuredClone(changes) });
+          await write(current.url, "PUT", toRDF(next), current.etag);
+          return next;
+        },
+        async delete(id) {
+          const current = await read(id);
+          if (!current.etag) throw Error("Calendar server did not provide an ETag; deleting is blocked");
+          if (current.events.length !== 1) throw Error("This document contains other events; deleting the document is blocked");
+          await write(current.url, "DELETE", void 0, current.etag);
+        }
+      };
     };
   }
 
-  // ../calendar/vanilla/src/rdf.js
-  function calendarRDF({ fetch, root }) {
-    const base = new URL(root);
-    if (!base.pathname.endsWith("/") || base.search || base.hash || base.username || base.password || !(base.protocol === "https:" || base.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(base.hostname))) throw Error("Choose an HTTPS calendar root (or loopback HTTP)");
-    const owned = (value) => {
-      const url = new URL(value, base);
-      if (!url.href.startsWith(base.href) || url.username || url.password || url.search || /%(?:2f|5c)/i.test(url.pathname)) throw Error("Calendar resource is outside the selected root");
-      return url;
-    };
-    const read = async (value) => {
-      const id = owned(value), url = new URL(id);
-      url.hash = "";
-      const response = await fetch(url.href, { headers: { Accept: "text/turtle, application/n-quads;q=0.9" } });
-      if (!response.ok) throw Error("Calendar read failed: " + response.status);
-      const events = fromRDF(await response.text(), { baseIRI: url.href });
-      const event = id.hash ? events.find((event2) => event2.sources.rdf.subject.value === id.href) : events.length === 1 ? events[0] : void 0;
-      if (!event) throw Error("Select a specific event in this RDF document");
-      return { event, events, url: url.href, etag: response.headers.get("ETag") };
-    };
-    const write = async (url, method, body, etag) => {
-      const response = await fetch(url, { method, headers: { "Content-Type": "application/n-quads", ...etag ? { "If-Match": etag } : { "If-None-Match": "*" } }, ...body === void 0 ? {} : { body } });
-      if (!response.ok) throw Error(response.status === 412 ? "Calendar changed; reload before retrying" : "Calendar write failed: " + response.status);
-    };
-    return {
-      async get(id) {
-        return (await read(id)).event;
-      },
-      async getAll(container = base.href) {
-        const url = owned(container);
-        url.hash = "";
-        const response = await fetch(url.href, { headers: { Accept: "text/turtle" } });
-        if (!response.ok) throw Error("Calendar listing failed: " + response.status);
-        const children = new N3Parser({ baseIRI: url.href }).parse(await response.text()).filter((q) => q.predicate.value === "http://www.w3.org/ns/ldp#contains" && q.object.termType === "NamedNode");
-        const result = {};
-        for (const child of children) {
-          const target = owned(child.object.value);
-          if (target.pathname.endsWith("/")) continue;
-          const document2 = await fetch(target.href, { headers: { Accept: "text/turtle, application/n-quads;q=0.9" } });
-          if (!document2.ok) throw Error("Calendar read failed: " + document2.status);
-          for (const event of fromRDF(await document2.text(), { baseIRI: target.href })) result[event.sources.rdf.subject.value] = event;
-        }
-        return result;
-      },
-      async create(event, id = new URL(crypto.randomUUID() + ".ttl#event", base).href) {
-        const subject = owned(id);
-        if (!subject.hash) subject.hash = "event";
-        const document2 = new URL(subject);
-        document2.hash = "";
-        await write(document2.href, "PUT", toRDF(event, { id: subject.href }));
-        return subject.href;
-      },
-      async update(id, changes) {
-        const current = await read(id);
-        if (!current.etag) throw Error("Calendar server did not provide an ETag; editing is blocked");
-        const next = validateEvent({ ...current.event, ...structuredClone(changes) });
-        await write(current.url, "PUT", toRDF(next), current.etag);
-        return next;
-      },
-      async delete(id) {
-        const current = await read(id);
-        if (!current.etag) throw Error("Calendar server did not provide an ETag; deleting is blocked");
-        if (current.events.length !== 1) throw Error("This document contains other events; deleting the document is blocked");
-        await write(current.url, "DELETE", void 0, current.etag);
-      }
-    };
-  }
+  // src/calendar.js
+  var codecs = createCalendarCodecs(ICALmodule, src_exports);
+  var { calendarModule } = codecs;
+  var calendarRDF = createCalendarRDF(codecs, N3Parser);
 
   // src/oauth-home.js
   function useOAuthHome(rs, browser = window) {
