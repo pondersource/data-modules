@@ -43,7 +43,9 @@ scoped fetch and exposes the same CRUD names on the original Pod documents.
 RDF fetch, including an LWS service. Updates and deletes require an ETag and use
 If-Match; creates use If-None-Match. Writes outside the selected root are refused.
 Use an event's fragment IRI when a document contains multiple events. Editing
-one preserves its sibling events; deletion refuses to delete a shared document.
+one preserves its sibling events. Deletion refuses a document that also contains
+other events, named graphs or independent resources. Reachable blank-node field
+values belonging to the event can be deleted with it.
 
 ## Dates and format preservation
 
@@ -62,6 +64,10 @@ one preserves its sibling events; deletion refuses to delete a shared document.
   named graphs. Only the selected literal is changed; other language variants
   remain. Structured places and complex recurrence graphs remain opaque;
   unsupported structured replacements fail instead of discarding them.
+- Shared RDF/iCalendar documents retain sibling source envelopes separately
+  from their bare source text. Cross-references between these sidecars are
+  flattened to avoid recursive growth. Native updates always use the freshly
+  fetched source snapshot, including when the caller supplies an older record.
 - Atomic temporal values are lexical strings plus timezone properties, rather
   than forcing floating/all-day times into timestamps. Recurrence and source
   envelopes use Atomic's native JSON datatype. Module validation enforces

@@ -7,6 +7,29 @@ const TYPE='http://www.w3.org/1999/02/22-rdf-syntax-ns#type';
 const META='x-pondersource-calendar-sources';
 const timed = name => ['start','end','recurrenceId'].includes(name);
 const clone = value => structuredClone(value);
+// Sibling origins must survive shared-document edits, but their redundant
+// document-wide sidecar maps must not recursively embed each other.
+function originSources(sources) {
+  const result=clone(sources);
+  if(result.rdf)delete result.rdf.envelopes;
+  if(result.icalendar)delete result.icalendar.envelopes;
+  return result;
+}
+function preserveFields(original,current,known) {
+  if(current===undefined)return undefined;
+  const extra=clone(original||{});
+  for(const name of known)delete extra[name];
+  return {...extra,...clone(current)};
+}
+function preserveRecurrence(original,current) {
+  const result=preserveFields(original,current,['rules','dates','excludedDates']);
+  if(!result)return result;
+  for(const name of ['dates','excludedDates'])if(current[name])result[name]=current[name].map(time=>{
+    const before=original?.[name]?.find(candidate=>candidate.value===time.value&&candidate.timezone===time.timezone);
+    return preserveFields(before,time,['value','timezone']);
+  });
+  return result;
+}
 const sourcesOf = value => {
   if(value===undefined)return {};
   if(!value||typeof value!=='object'||Array.isArray(value))throw Error('Invalid calendar source envelope');
@@ -44,7 +67,10 @@ function toJSON(event) {
   validateEvent(event);
   const original=clone(event.sources?.json||{});
   for(const name of [...fieldMappings.map(field=>field.field),'recurrence'])delete original[name];
-  return {...original,...clone(event)};
+  const result={...original,...clone(event)};
+  for(const field of ['start','end','recurrenceId'])if(event[field]!==undefined)result[field]=preserveFields(event.sources?.json?.[field],event[field],['value','timezone']);
+  if(event.recurrence!==undefined)result.recurrence=preserveRecurrence(event.sources?.json?.recurrence,event.recurrence);
+  return result;
 }
 
 function timeFromProperty(property) {
@@ -65,11 +91,12 @@ function fromICalendar(text) {
   const calendar=new ICALJS.Component(ICALJS.parse(text));
   if(calendar.name!=='vcalendar')throw Error('Expected a VCALENDAR document');
   const events=calendar.getAllSubcomponents('vevent');
+  const hadMetadata=events.map(event=>event.hasProperty(META));
   const envelopes=events.map(event=>{
     const raw=event.getFirstPropertyValue(META);event.removeAllProperties(META);
     return raw?sourcesOf(JSON.parse(raw)):{};
   });
-  const source=events.some((_event,index)=>Object.keys(envelopes[index]).length)?calendar.toString():text;
+  const source=hadMetadata.some(Boolean)?calendar.toString():text;
   return events.map((component,index)=>{
     const result={};
     for(const field of fieldMappings) {
@@ -80,7 +107,8 @@ function fromICalendar(text) {
     const rules=component.getAllProperties('rrule').map(property=>property.getFirstValue().toString());
     const dates=name=>component.getAllProperties(name).flatMap(property=>property.getValues().map(time=>({value:time.toString(),...(property.getParameter('tzid')?{timezone:property.getParameter('tzid')}:{})})));
     result.recurrence={rules,dates:dates('rdate'),excludedDates:dates('exdate')};
-    result.sources={...envelopes[index],icalendar:{text:source,index}};
+    const siblings=envelopes.flatMap((sources,other)=>other!==index&&hadMetadata[other]?[{index:other,sources:originSources(sources)}]:[]);
+    result.sources={...envelopes[index],icalendar:{text:source,index,envelopes:siblings}};
     return validateEvent(result);
   });
 }
@@ -88,6 +116,11 @@ function toICalendar(event) {
   validateEvent(event);
   const source=event.sources?.icalendar;
   const calendar=source?new ICALJS.Component(ICALJS.parse(source.text)):new ICALJS.Component('vcalendar');
+  for(const sibling of source?.envelopes||[]) {
+    const other=calendar.getAllSubcomponents('vevent')[sibling.index];
+    if(!other)throw Error('A sibling calendar source event is missing');
+    other.removeAllProperties(META);other.addPropertyWithValue(META,JSON.stringify(originSources(sibling.sources)));
+  }
   if(!source){calendar.addPropertyWithValue('version','2.0');calendar.addPropertyWithValue('prodid','-//Ponder Source//Calendar module//EN');}
   const component=source?calendar.getAllSubcomponents('vevent')[source.index]:new ICALJS.Component('vevent');
   if(!component)throw Error('Calendar source event is missing');
@@ -123,6 +156,11 @@ const restoreTerm = term => term.type==='BlankNode'?blankNode(term.value):term.t
 /** Open shapes: retain all source quads, including named graphs and unknown predicates. */
 function fromRDF(text,{baseIRI}={}) {
   const quads=parse(text,baseIRI),groups=new Map();
+  const envelopes=new Map();
+  for(const statement of quads)if(statement.predicate.value===SOURCE_KEY&&statement.object.termType==='Literal') {
+    try {envelopes.set(statement,sourcesOf(JSON.parse(statement.object.value)));}
+    catch { /* Keep another resource's unrecognized sidecar as opaque RDF. */ }
+  }
   for(const statement of quads)if(statement.predicate.value===TYPE&&[ICAL+'Vevent',SCHEMA+'Event','http://schema.org/Event'].includes(statement.object.value)) {
     const key=termKey(statement.subject)+'|'+termKey(statement.graph);
     if(!groups.has(key))groups.set(key,{subject:statement.subject,graph:statement.graph,vocabulary:statement.object.value===ICAL+'Vevent'?'rdf':statement.object.value===SCHEMA+'Event'?'schema':'schemaHttp'});
@@ -149,8 +187,9 @@ function fromRDF(text,{baseIRI}={}) {
       const rules=own.filter(q=>q.predicate.value===ICAL+'rrule'&&q.object.termType==='Literal').map(q=>q.object.value);
       if(rules.length)result.recurrence={rules};
     }
-    const clean=quads.filter(q=>q.predicate.value!==SOURCE_KEY);
-    result.sources={...sources,rdf:{text:nquads(clean),subject:storedTerm(subject),graph:storedTerm(graph),vocabulary,selected}};
+    const clean=quads.filter(q=>!envelopes.has(q));
+    const siblings=[...envelopes].filter(([q])=>!q.subject.equals(subject)||!q.graph.equals(graph)).map(([q,value])=>({subject:storedTerm(q.subject),graph:storedTerm(q.graph),sources:originSources(value)}));
+    result.sources={...sources,rdf:{text:nquads(clean),subject:storedTerm(subject),graph:storedTerm(graph),vocabulary,selected,envelopes:siblings}};
     return validateEvent(result);
   });
 }
@@ -161,6 +200,7 @@ function toRDF(event,{id}={}) {
   const graph=source?restoreTerm(source.graph):defaultGraph();
   const vocabulary=source?.vocabulary||'rdf';
   let quads=source?parse(source.text):[quad(subject,namedNode(TYPE),namedNode(ICAL+'Vevent'),graph)];
+  for(const sibling of source?.envelopes||[])quads.push(quad(restoreTerm(sibling.subject),namedNode(SOURCE_KEY),literal(JSON.stringify(originSources(sibling.sources))),restoreTerm(sibling.graph)));
   const own=q=>q.subject.equals(subject)&&q.graph.equals(graph);
   for(const field of fieldMappings) {
     const predicate=field[vocabulary],existing=quads.filter(q=>own(q)&&q.predicate.value===predicate);
@@ -180,11 +220,12 @@ function toRDF(event,{id}={}) {
       if(event[field.field]?.timezone)quads.push(quad(subject,namedNode(CAL+field.field+'Timezone'),literal(event[field.field].timezone),graph));
     }
   }
+  const previousRecurrence=quads.find(q=>own(q)&&q.predicate.value===CAL+'recurrence')?.object.value;
   quads=quads.filter(q=>!(own(q)&&[CAL+'recurrence',SOURCE_KEY].includes(q.predicate.value)));
   if(event.recurrence) {
     quads=quads.filter(q=>!(own(q)&&q.predicate.value===ICAL+'rrule'&&q.object.termType==='Literal'));
     for(const rule of event.recurrence.rules||[])quads.push(quad(subject,namedNode(ICAL+'rrule'),literal(rule),graph));
-    quads.push(quad(subject,namedNode(CAL+'recurrence'),literal(JSON.stringify(event.recurrence)),graph));
+    quads.push(quad(subject,namedNode(CAL+'recurrence'),literal(JSON.stringify(preserveRecurrence(previousRecurrence?JSON.parse(previousRecurrence):undefined,event.recurrence))),graph));
   }
   quads.push(quad(subject,namedNode(SOURCE_KEY),literal(JSON.stringify(event.sources||{})),graph));
   return nquads(quads);
@@ -212,7 +253,8 @@ function toAtomic(event,{id}={}) {
     if(event[field.field]!==undefined)result[field.atomic]=timed(field.field)?event[field.field].value:event[field.field];
     if(timed(field.field)&&event[field.field]?.timezone)result[CAL+field.field+'Timezone']=event[field.field].timezone;
   }
-  delete result[CAL+'recurrence'];if(event.recurrence)result[CAL+'recurrence']=clone(event.recurrence);
+  const previousRecurrence=result[CAL+'recurrence'];
+  delete result[CAL+'recurrence'];if(event.recurrence)result[CAL+'recurrence']=preserveRecurrence(previousRecurrence,event.recurrence);
   result[SOURCE_KEY]=clone(event.sources||{});
   return result;
 }

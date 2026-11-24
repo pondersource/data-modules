@@ -48,13 +48,35 @@ return function calendarRDF({fetch,root}) {
     async update(id,changes) {
       const current=await read(id);
       if(!current.etag)throw Error('Calendar server did not provide an ETag; editing is blocked');
-      const next=validateEvent({...current.event,...structuredClone(changes)});
+      // Provenance belongs to the freshly fetched document. An older caller
+      // snapshot must not overwrite concurrently added, unrelated RDF.
+      const next=validateEvent({...current.event,...structuredClone(changes),sources:current.event.sources});
       await write(current.url,'PUT',toRDF(next),current.etag);return next;
     },
     async delete(id) {
       const current=await read(id);
       if(!current.etag)throw Error('Calendar server did not provide an ETag; deleting is blocked');
       if(current.events.length!==1)throw Error('This document contains other events; deleting the document is blocked');
+      const source=current.event.sources.rdf;
+      if(source.envelopes?.length)throw Error('This document contains other resources; deleting the document is blocked');
+      const statements=new Parser({format:'N-Quads',blankNodePrefix:''}).parse(source.text);
+      const key=term=>term.termType+':'+term.value;
+      const graphKey=source.graph.type+':'+source.graph.value;
+      const outgoing=new Map();
+      for(const statement of statements) {
+        if(key(statement.graph)!==graphKey)throw Error('This document contains other graphs; deleting the document is blocked');
+        const subject=key(statement.subject);
+        if(!outgoing.has(subject))outgoing.set(subject,[]);
+        outgoing.get(subject).push(statement);
+      }
+      // An event owns its reachable blank-node field values, not arbitrary
+      // named resources or disconnected blank-node records in the same file.
+      const pending=[source.subject.type+':'+source.subject.value],owned=new Set(pending);
+      for(let index=0;index<pending.length;index++)for(const statement of outgoing.get(pending[index])||[]) {
+        const object=key(statement.object);
+        if(statement.object.termType==='BlankNode'&&!owned.has(object)){owned.add(object);pending.push(object);}
+      }
+      if([...outgoing.keys()].some(subject=>!owned.has(subject)))throw Error('This document contains other resources; deleting the document is blocked');
       await write(current.url,'DELETE',undefined,current.etag);
     }
   };

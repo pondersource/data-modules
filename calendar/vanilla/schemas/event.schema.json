@@ -29,7 +29,7 @@
       "required": [
         "value"
       ],
-      "additionalProperties": false,
+      "additionalProperties": true,
       "properties": {
         "value": {
           "type": "string",
@@ -46,7 +46,7 @@
       "required": [
         "value"
       ],
-      "additionalProperties": false,
+      "additionalProperties": true,
       "properties": {
         "value": {
           "type": "string",
@@ -63,7 +63,7 @@
       "required": [
         "value"
       ],
-      "additionalProperties": false,
+      "additionalProperties": true,
       "properties": {
         "value": {
           "type": "string",
@@ -92,7 +92,7 @@
             "required": [
               "value"
             ],
-            "additionalProperties": false,
+            "additionalProperties": true,
             "properties": {
               "value": {
                 "type": "string",
@@ -112,7 +112,7 @@
             "required": [
               "value"
             ],
-            "additionalProperties": false,
+            "additionalProperties": true,
             "properties": {
               "value": {
                 "type": "string",

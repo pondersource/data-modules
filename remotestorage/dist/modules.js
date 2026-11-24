@@ -19851,7 +19851,7 @@ var PonderSourceModules = (() => {
   var temporal = {
     type: "object",
     required: ["value"],
-    additionalProperties: false,
+    additionalProperties: true,
     properties: {
       value: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}(T\\d{2}:\\d{2}:\\d{2}(Z|[+-]\\d{2}:\\d{2})?)?$" },
       timezone: { type: "string", minLength: 1 }
@@ -19937,6 +19937,27 @@ ${fieldMappings.map((field) => `  <${field[vocabulary]}> ${["start", "end", "rec
     const META = "x-pondersource-calendar-sources";
     const timed = (name) => ["start", "end", "recurrenceId"].includes(name);
     const clone2 = (value) => structuredClone(value);
+    function originSources(sources) {
+      const result = clone2(sources);
+      if (result.rdf) delete result.rdf.envelopes;
+      if (result.icalendar) delete result.icalendar.envelopes;
+      return result;
+    }
+    function preserveFields(original, current, known) {
+      if (current === void 0) return void 0;
+      const extra = clone2(original || {});
+      for (const name of known) delete extra[name];
+      return { ...extra, ...clone2(current) };
+    }
+    function preserveRecurrence(original, current) {
+      const result = preserveFields(original, current, ["rules", "dates", "excludedDates"]);
+      if (!result) return result;
+      for (const name of ["dates", "excludedDates"]) if (current[name]) result[name] = current[name].map((time) => {
+        const before = original?.[name]?.find((candidate) => candidate.value === time.value && candidate.timezone === time.timezone);
+        return preserveFields(before, time, ["value", "timezone"]);
+      });
+      return result;
+    }
     const sourcesOf = (value) => {
       if (value === void 0) return {};
       if (!value || typeof value !== "object" || Array.isArray(value)) throw Error("Invalid calendar source envelope");
@@ -19972,7 +19993,10 @@ ${fieldMappings.map((field) => `  <${field[vocabulary]}> ${["start", "end", "rec
       validateEvent(event);
       const original = clone2(event.sources?.json || {});
       for (const name of [...fieldMappings.map((field) => field.field), "recurrence"]) delete original[name];
-      return { ...original, ...clone2(event) };
+      const result = { ...original, ...clone2(event) };
+      for (const field of ["start", "end", "recurrenceId"]) if (event[field] !== void 0) result[field] = preserveFields(event.sources?.json?.[field], event[field], ["value", "timezone"]);
+      if (event.recurrence !== void 0) result.recurrence = preserveRecurrence(event.sources?.json?.recurrence, event.recurrence);
+      return result;
     }
     function timeFromProperty(property) {
       if (!property) return void 0;
@@ -19991,12 +20015,13 @@ ${fieldMappings.map((field) => `  <${field[vocabulary]}> ${["start", "end", "rec
       const calendar = new ICALJS.Component(ICALJS.parse(text));
       if (calendar.name !== "vcalendar") throw Error("Expected a VCALENDAR document");
       const events = calendar.getAllSubcomponents("vevent");
+      const hadMetadata = events.map((event) => event.hasProperty(META));
       const envelopes = events.map((event) => {
         const raw = event.getFirstPropertyValue(META);
         event.removeAllProperties(META);
         return raw ? sourcesOf(JSON.parse(raw)) : {};
       });
-      const source = events.some((_event, index) => Object.keys(envelopes[index]).length) ? calendar.toString() : text;
+      const source = hadMetadata.some(Boolean) ? calendar.toString() : text;
       return events.map((component, index) => {
         const result = {};
         for (const field of fieldMappings) {
@@ -20006,7 +20031,8 @@ ${fieldMappings.map((field) => `  <${field[vocabulary]}> ${["start", "end", "rec
         const rules = component.getAllProperties("rrule").map((property) => property.getFirstValue().toString());
         const dates = (name) => component.getAllProperties(name).flatMap((property) => property.getValues().map((time) => ({ value: time.toString(), ...property.getParameter("tzid") ? { timezone: property.getParameter("tzid") } : {} })));
         result.recurrence = { rules, dates: dates("rdate"), excludedDates: dates("exdate") };
-        result.sources = { ...envelopes[index], icalendar: { text: source, index } };
+        const siblings = envelopes.flatMap((sources, other) => other !== index && hadMetadata[other] ? [{ index: other, sources: originSources(sources) }] : []);
+        result.sources = { ...envelopes[index], icalendar: { text: source, index, envelopes: siblings } };
         return validateEvent(result);
       });
     }
@@ -20014,6 +20040,12 @@ ${fieldMappings.map((field) => `  <${field[vocabulary]}> ${["start", "end", "rec
       validateEvent(event);
       const source = event.sources?.icalendar;
       const calendar = source ? new ICALJS.Component(ICALJS.parse(source.text)) : new ICALJS.Component("vcalendar");
+      for (const sibling of source?.envelopes || []) {
+        const other = calendar.getAllSubcomponents("vevent")[sibling.index];
+        if (!other) throw Error("A sibling calendar source event is missing");
+        other.removeAllProperties(META);
+        other.addPropertyWithValue(META, JSON.stringify(originSources(sibling.sources)));
+      }
       if (!source) {
         calendar.addPropertyWithValue("version", "2.0");
         calendar.addPropertyWithValue("prodid", "-//Ponder Source//Calendar module//EN");
@@ -20054,6 +20086,13 @@ ${fieldMappings.map((field) => `  <${field[vocabulary]}> ${["start", "end", "rec
     const restoreTerm = (term) => term.type === "BlankNode" ? blankNode2(term.value) : term.type === "DefaultGraph" ? defaultGraph2() : namedNode5(term.value);
     function fromRDF(text, { baseIRI } = {}) {
       const quads = parse2(text, baseIRI), groups = /* @__PURE__ */ new Map();
+      const envelopes = /* @__PURE__ */ new Map();
+      for (const statement of quads) if (statement.predicate.value === SOURCE_KEY && statement.object.termType === "Literal") {
+        try {
+          envelopes.set(statement, sourcesOf(JSON.parse(statement.object.value)));
+        } catch {
+        }
+      }
       for (const statement of quads) if (statement.predicate.value === TYPE && [ICAL + "Vevent", SCHEMA + "Event", "http://schema.org/Event"].includes(statement.object.value)) {
         const key = termKey(statement.subject) + "|" + termKey(statement.graph);
         if (!groups.has(key)) groups.set(key, { subject: statement.subject, graph: statement.graph, vocabulary: statement.object.value === ICAL + "Vevent" ? "rdf" : statement.object.value === SCHEMA + "Event" ? "schema" : "schemaHttp" });
@@ -20080,8 +20119,9 @@ ${fieldMappings.map((field) => `  <${field[vocabulary]}> ${["start", "end", "rec
           const rules = own.filter((q) => q.predicate.value === ICAL + "rrule" && q.object.termType === "Literal").map((q) => q.object.value);
           if (rules.length) result.recurrence = { rules };
         }
-        const clean = quads.filter((q) => q.predicate.value !== SOURCE_KEY);
-        result.sources = { ...sources, rdf: { text: nquads(clean), subject: storedTerm(subject), graph: storedTerm(graph), vocabulary, selected } };
+        const clean = quads.filter((q) => !envelopes.has(q));
+        const siblings = [...envelopes].filter(([q]) => !q.subject.equals(subject) || !q.graph.equals(graph)).map(([q, value]) => ({ subject: storedTerm(q.subject), graph: storedTerm(q.graph), sources: originSources(value) }));
+        result.sources = { ...sources, rdf: { text: nquads(clean), subject: storedTerm(subject), graph: storedTerm(graph), vocabulary, selected, envelopes: siblings } };
         return validateEvent(result);
       });
     }
@@ -20092,6 +20132,7 @@ ${fieldMappings.map((field) => `  <${field[vocabulary]}> ${["start", "end", "rec
       const graph = source ? restoreTerm(source.graph) : defaultGraph2();
       const vocabulary = source?.vocabulary || "rdf";
       let quads = source ? parse2(source.text) : [quad4(subject, namedNode5(TYPE), namedNode5(ICAL + "Vevent"), graph)];
+      for (const sibling of source?.envelopes || []) quads.push(quad4(restoreTerm(sibling.subject), namedNode5(SOURCE_KEY), literal2(JSON.stringify(originSources(sibling.sources))), restoreTerm(sibling.graph)));
       const own = (q) => q.subject.equals(subject) && q.graph.equals(graph);
       for (const field of fieldMappings) {
         const predicate = field[vocabulary], existing = quads.filter((q) => own(q) && q.predicate.value === predicate);
@@ -20110,11 +20151,12 @@ ${fieldMappings.map((field) => `  <${field[vocabulary]}> ${["start", "end", "rec
           if (event[field.field]?.timezone) quads.push(quad4(subject, namedNode5(CAL + field.field + "Timezone"), literal2(event[field.field].timezone), graph));
         }
       }
+      const previousRecurrence = quads.find((q) => own(q) && q.predicate.value === CAL + "recurrence")?.object.value;
       quads = quads.filter((q) => !(own(q) && [CAL + "recurrence", SOURCE_KEY].includes(q.predicate.value)));
       if (event.recurrence) {
         quads = quads.filter((q) => !(own(q) && q.predicate.value === ICAL + "rrule" && q.object.termType === "Literal"));
         for (const rule of event.recurrence.rules || []) quads.push(quad4(subject, namedNode5(ICAL + "rrule"), literal2(rule), graph));
-        quads.push(quad4(subject, namedNode5(CAL + "recurrence"), literal2(JSON.stringify(event.recurrence)), graph));
+        quads.push(quad4(subject, namedNode5(CAL + "recurrence"), literal2(JSON.stringify(preserveRecurrence(previousRecurrence ? JSON.parse(previousRecurrence) : void 0, event.recurrence))), graph));
       }
       quads.push(quad4(subject, namedNode5(SOURCE_KEY), literal2(JSON.stringify(event.sources || {})), graph));
       return nquads(quads);
@@ -20143,8 +20185,9 @@ ${fieldMappings.map((field) => `  <${field[vocabulary]}> ${["start", "end", "rec
         if (event[field.field] !== void 0) result[field.atomic] = timed(field.field) ? event[field.field].value : event[field.field];
         if (timed(field.field) && event[field.field]?.timezone) result[CAL + field.field + "Timezone"] = event[field.field].timezone;
       }
+      const previousRecurrence = result[CAL + "recurrence"];
       delete result[CAL + "recurrence"];
-      if (event.recurrence) result[CAL + "recurrence"] = clone2(event.recurrence);
+      if (event.recurrence) result[CAL + "recurrence"] = preserveRecurrence(previousRecurrence, event.recurrence);
       result[SOURCE_KEY] = clone2(event.sources || {});
       return result;
     }
@@ -20247,7 +20290,7 @@ ${fieldMappings.map((field) => `  <${field[vocabulary]}> ${["start", "end", "rec
         async update(id, changes) {
           const current = await read(id);
           if (!current.etag) throw Error("Calendar server did not provide an ETag; editing is blocked");
-          const next = validateEvent({ ...current.event, ...structuredClone(changes) });
+          const next = validateEvent({ ...current.event, ...structuredClone(changes), sources: current.event.sources });
           await write(current.url, "PUT", toRDF(next), current.etag);
           return next;
         },
@@ -20255,6 +20298,27 @@ ${fieldMappings.map((field) => `  <${field[vocabulary]}> ${["start", "end", "rec
           const current = await read(id);
           if (!current.etag) throw Error("Calendar server did not provide an ETag; deleting is blocked");
           if (current.events.length !== 1) throw Error("This document contains other events; deleting the document is blocked");
+          const source = current.event.sources.rdf;
+          if (source.envelopes?.length) throw Error("This document contains other resources; deleting the document is blocked");
+          const statements = new Parser({ format: "N-Quads", blankNodePrefix: "" }).parse(source.text);
+          const key = (term) => term.termType + ":" + term.value;
+          const graphKey = source.graph.type + ":" + source.graph.value;
+          const outgoing = /* @__PURE__ */ new Map();
+          for (const statement of statements) {
+            if (key(statement.graph) !== graphKey) throw Error("This document contains other graphs; deleting the document is blocked");
+            const subject = key(statement.subject);
+            if (!outgoing.has(subject)) outgoing.set(subject, []);
+            outgoing.get(subject).push(statement);
+          }
+          const pending = [source.subject.type + ":" + source.subject.value], owned2 = new Set(pending);
+          for (let index = 0; index < pending.length; index++) for (const statement of outgoing.get(pending[index]) || []) {
+            const object = key(statement.object);
+            if (statement.object.termType === "BlankNode" && !owned2.has(object)) {
+              owned2.add(object);
+              pending.push(object);
+            }
+          }
+          if ([...outgoing.keys()].some((subject) => !owned2.has(subject))) throw Error("This document contains other resources; deleting the document is blocked");
           await write(current.url, "DELETE", void 0, current.etag);
         }
       };
