@@ -7,6 +7,21 @@ const TYPE='http://www.w3.org/1999/02/22-rdf-syntax-ns#type';
 const META='x-pondersource-calendar-sources';
 const timed = name => ['start','end','recurrenceId'].includes(name);
 const clone = value => structuredClone(value);
+function preserveFields(original,current,known) {
+  if(current===undefined)return undefined;
+  const extra=clone(original||{});
+  for(const name of known)delete extra[name];
+  return {...extra,...clone(current)};
+}
+function preserveRecurrence(original,current) {
+  const result=preserveFields(original,current,['rules','dates','excludedDates']);
+  if(!result)return result;
+  for(const name of ['dates','excludedDates'])if(current[name])result[name]=current[name].map(time=>{
+    const before=original?.[name]?.find(candidate=>candidate.value===time.value&&candidate.timezone===time.timezone);
+    return preserveFields(before,time,['value','timezone']);
+  });
+  return result;
+}
 const sourcesOf = value => {
   if(value===undefined)return {};
   if(!value||typeof value!=='object'||Array.isArray(value))throw Error('Invalid calendar source envelope');
@@ -44,7 +59,10 @@ function toJSON(event) {
   validateEvent(event);
   const original=clone(event.sources?.json||{});
   for(const name of [...fieldMappings.map(field=>field.field),'recurrence'])delete original[name];
-  return {...original,...clone(event)};
+  const result={...original,...clone(event)};
+  for(const field of ['start','end','recurrenceId'])if(event[field]!==undefined)result[field]=preserveFields(event.sources?.json?.[field],event[field],['value','timezone']);
+  if(event.recurrence!==undefined)result.recurrence=preserveRecurrence(event.sources?.json?.recurrence,event.recurrence);
+  return result;
 }
 
 function timeFromProperty(property) {
@@ -180,11 +198,12 @@ function toRDF(event,{id}={}) {
       if(event[field.field]?.timezone)quads.push(quad(subject,namedNode(CAL+field.field+'Timezone'),literal(event[field.field].timezone),graph));
     }
   }
+  const previousRecurrence=quads.find(q=>own(q)&&q.predicate.value===CAL+'recurrence')?.object.value;
   quads=quads.filter(q=>!(own(q)&&[CAL+'recurrence',SOURCE_KEY].includes(q.predicate.value)));
   if(event.recurrence) {
     quads=quads.filter(q=>!(own(q)&&q.predicate.value===ICAL+'rrule'&&q.object.termType==='Literal'));
     for(const rule of event.recurrence.rules||[])quads.push(quad(subject,namedNode(ICAL+'rrule'),literal(rule),graph));
-    quads.push(quad(subject,namedNode(CAL+'recurrence'),literal(JSON.stringify(event.recurrence)),graph));
+    quads.push(quad(subject,namedNode(CAL+'recurrence'),literal(JSON.stringify(preserveRecurrence(previousRecurrence?JSON.parse(previousRecurrence):undefined,event.recurrence))),graph));
   }
   quads.push(quad(subject,namedNode(SOURCE_KEY),literal(JSON.stringify(event.sources||{})),graph));
   return nquads(quads);
@@ -212,7 +231,8 @@ function toAtomic(event,{id}={}) {
     if(event[field.field]!==undefined)result[field.atomic]=timed(field.field)?event[field.field].value:event[field.field];
     if(timed(field.field)&&event[field.field]?.timezone)result[CAL+field.field+'Timezone']=event[field.field].timezone;
   }
-  delete result[CAL+'recurrence'];if(event.recurrence)result[CAL+'recurrence']=clone(event.recurrence);
+  const previousRecurrence=result[CAL+'recurrence'];
+  delete result[CAL+'recurrence'];if(event.recurrence)result[CAL+'recurrence']=preserveRecurrence(previousRecurrence,event.recurrence);
   result[SOURCE_KEY]=clone(event.sources||{});
   return result;
 }

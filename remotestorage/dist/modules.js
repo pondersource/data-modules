@@ -19851,7 +19851,7 @@ var PonderSourceModules = (() => {
   var temporal = {
     type: "object",
     required: ["value"],
-    additionalProperties: false,
+    additionalProperties: true,
     properties: {
       value: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}(T\\d{2}:\\d{2}:\\d{2}(Z|[+-]\\d{2}:\\d{2})?)?$" },
       timezone: { type: "string", minLength: 1 }
@@ -19937,6 +19937,21 @@ ${fieldMappings.map((field) => `  <${field[vocabulary]}> ${["start", "end", "rec
     const META = "x-pondersource-calendar-sources";
     const timed = (name) => ["start", "end", "recurrenceId"].includes(name);
     const clone2 = (value) => structuredClone(value);
+    function preserveFields(original, current, known) {
+      if (current === void 0) return void 0;
+      const extra = clone2(original || {});
+      for (const name of known) delete extra[name];
+      return { ...extra, ...clone2(current) };
+    }
+    function preserveRecurrence(original, current) {
+      const result = preserveFields(original, current, ["rules", "dates", "excludedDates"]);
+      if (!result) return result;
+      for (const name of ["dates", "excludedDates"]) if (current[name]) result[name] = current[name].map((time) => {
+        const before = original?.[name]?.find((candidate) => candidate.value === time.value && candidate.timezone === time.timezone);
+        return preserveFields(before, time, ["value", "timezone"]);
+      });
+      return result;
+    }
     const sourcesOf = (value) => {
       if (value === void 0) return {};
       if (!value || typeof value !== "object" || Array.isArray(value)) throw Error("Invalid calendar source envelope");
@@ -19972,7 +19987,10 @@ ${fieldMappings.map((field) => `  <${field[vocabulary]}> ${["start", "end", "rec
       validateEvent(event);
       const original = clone2(event.sources?.json || {});
       for (const name of [...fieldMappings.map((field) => field.field), "recurrence"]) delete original[name];
-      return { ...original, ...clone2(event) };
+      const result = { ...original, ...clone2(event) };
+      for (const field of ["start", "end", "recurrenceId"]) if (event[field] !== void 0) result[field] = preserveFields(event.sources?.json?.[field], event[field], ["value", "timezone"]);
+      if (event.recurrence !== void 0) result.recurrence = preserveRecurrence(event.sources?.json?.recurrence, event.recurrence);
+      return result;
     }
     function timeFromProperty(property) {
       if (!property) return void 0;
@@ -20110,11 +20128,12 @@ ${fieldMappings.map((field) => `  <${field[vocabulary]}> ${["start", "end", "rec
           if (event[field.field]?.timezone) quads.push(quad4(subject, namedNode5(CAL + field.field + "Timezone"), literal2(event[field.field].timezone), graph));
         }
       }
+      const previousRecurrence = quads.find((q) => own(q) && q.predicate.value === CAL + "recurrence")?.object.value;
       quads = quads.filter((q) => !(own(q) && [CAL + "recurrence", SOURCE_KEY].includes(q.predicate.value)));
       if (event.recurrence) {
         quads = quads.filter((q) => !(own(q) && q.predicate.value === ICAL + "rrule" && q.object.termType === "Literal"));
         for (const rule of event.recurrence.rules || []) quads.push(quad4(subject, namedNode5(ICAL + "rrule"), literal2(rule), graph));
-        quads.push(quad4(subject, namedNode5(CAL + "recurrence"), literal2(JSON.stringify(event.recurrence)), graph));
+        quads.push(quad4(subject, namedNode5(CAL + "recurrence"), literal2(JSON.stringify(preserveRecurrence(previousRecurrence ? JSON.parse(previousRecurrence) : void 0, event.recurrence))), graph));
       }
       quads.push(quad4(subject, namedNode5(SOURCE_KEY), literal2(JSON.stringify(event.sources || {})), graph));
       return nquads(quads);
@@ -20143,8 +20162,9 @@ ${fieldMappings.map((field) => `  <${field[vocabulary]}> ${["start", "end", "rec
         if (event[field.field] !== void 0) result[field.atomic] = timed(field.field) ? event[field.field].value : event[field.field];
         if (timed(field.field) && event[field.field]?.timezone) result[CAL + field.field + "Timezone"] = event[field.field].timezone;
       }
+      const previousRecurrence = result[CAL + "recurrence"];
       delete result[CAL + "recurrence"];
-      if (event.recurrence) result[CAL + "recurrence"] = clone2(event.recurrence);
+      if (event.recurrence) result[CAL + "recurrence"] = preserveRecurrence(previousRecurrence, event.recurrence);
       result[SOURCE_KEY] = clone2(event.sources || {});
       return result;
     }

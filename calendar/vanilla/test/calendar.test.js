@@ -153,3 +153,15 @@ test('deleting a native event never deletes independent RDF resources, graphs or
  await calendarRDF({fetch,root:'https://pod.example/calendar/'}).delete(id);
  assert.deepEqual(calls,['GET','DELETE']);
 });
+
+test('unknown nested temporal and recurrence fields survive format round trips without reviving removed known fields',()=>{
+ const original={...event(),start:{...event().start,vendor:{precision:'original'}},recurrence:{...event().recurrence,vendor:{keep:true},excludedDates:[{...event().recurrence.excludedDates[0],vendor:'date-extension'}]}};
+ assert.equal(schema(original),true,JSON.stringify(schema.errors));
+ let value=fromICalendar(toICalendar(fromAtomic(toAtomic(fromRDF(toRDF(fromJSON(original)))[0],{id:'https://atomic.example/nested'}))))[0];
+ const result=toJSON(value);
+ assert.deepEqual(result.start.vendor,original.start.vendor);assert.deepEqual(result.recurrence.vendor,{keep:true});assert.equal(result.recurrence.excludedDates[0].vendor,'date-extension');
+ delete value.start.timezone;value.start.value+='Z';
+ assert.equal(toJSON(value).start.timezone,undefined);
+ const atomic=toAtomic(event(),{id:'https://atomic.example/nested'});atomic[CAL+'recurrence'].vendor='atomic-extension';
+ value=fromICalendar(toICalendar(fromAtomic(atomic)))[0];assert.equal(toAtomic(value)[CAL+'recurrence'].vendor,'atomic-extension');
+});

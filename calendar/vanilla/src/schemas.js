@@ -5,7 +5,7 @@ export const ATOMIC = 'https://atomicdata.dev/';
 export const SOURCE_KEY = CAL + 'sources';
 
 const temporal = {
-  type: 'object', required: ['value'], additionalProperties: false,
+  type: 'object', required: ['value'], additionalProperties: true,
   properties: {
     value: {type:'string',pattern:'^\\d{4}-\\d{2}-\\d{2}(T\\d{2}:\\d{2}:\\d{2}(Z|[+-]\\d{2}:\\d{2})?)?$'},
     timezone: {type:'string',minLength:1}
