@@ -1,0 +1,66 @@
+[
+  {
+    "field": "uid",
+    "ical": "uid",
+    "rdf": "http://www.w3.org/2002/12/cal/ical#uid",
+    "schema": "https://schema.org/identifier",
+    "atomic": "https://pondersource.com/ns/calendar/uid",
+    "schemaHttp": "http://schema.org/identifier"
+  },
+  {
+    "field": "title",
+    "ical": "summary",
+    "rdf": "http://www.w3.org/2002/12/cal/ical#summary",
+    "schema": "https://schema.org/name",
+    "atomic": "https://atomicdata.dev/properties/name",
+    "schemaHttp": "http://schema.org/name"
+  },
+  {
+    "field": "description",
+    "ical": "description",
+    "rdf": "http://www.w3.org/2002/12/cal/ical#description",
+    "schema": "https://schema.org/description",
+    "atomic": "https://atomicdata.dev/properties/description",
+    "schemaHttp": "http://schema.org/description"
+  },
+  {
+    "field": "location",
+    "ical": "location",
+    "rdf": "http://www.w3.org/2002/12/cal/ical#location",
+    "schema": "https://schema.org/location",
+    "atomic": "https://pondersource.com/ns/calendar/location",
+    "schemaHttp": "http://schema.org/location"
+  },
+  {
+    "field": "duration",
+    "ical": "duration",
+    "rdf": "http://www.w3.org/2002/12/cal/ical#duration",
+    "schema": "https://schema.org/duration",
+    "atomic": "https://pondersource.com/ns/calendar/duration",
+    "schemaHttp": "http://schema.org/duration"
+  },
+  {
+    "field": "start",
+    "ical": "dtstart",
+    "rdf": "http://www.w3.org/2002/12/cal/ical#dtstart",
+    "schema": "https://schema.org/startDate",
+    "atomic": "https://pondersource.com/ns/calendar/start",
+    "schemaHttp": "http://schema.org/startDate"
+  },
+  {
+    "field": "end",
+    "ical": "dtend",
+    "rdf": "http://www.w3.org/2002/12/cal/ical#dtend",
+    "schema": "https://schema.org/endDate",
+    "atomic": "https://pondersource.com/ns/calendar/end",
+    "schemaHttp": "http://schema.org/endDate"
+  },
+  {
+    "field": "recurrenceId",
+    "ical": "recurrence-id",
+    "rdf": "http://www.w3.org/2002/12/cal/ical#recurrenceId",
+    "schema": "https://pondersource.com/ns/calendar/recurrenceId",
+    "atomic": "https://pondersource.com/ns/calendar/recurrenceId",
+    "schemaHttp": "https://pondersource.com/ns/calendar/recurrenceId"
+  }
+]

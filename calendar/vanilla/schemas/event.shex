@@ -1,0 +1,44 @@
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX ical: <http://www.w3.org/2002/12/cal/ical#>
+PREFIX s: <https://schema.org/>
+PREFIX cal: <https://pondersource.com/ns/calendar/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+<https://pondersource.com/ns/calendar/VEvent> EXTRA a {
+  a [ical:Vevent] ;
+  <http://www.w3.org/2002/12/cal/ical#uid> xsd:string ;
+  <http://www.w3.org/2002/12/cal/ical#summary> (xsd:string OR rdf:langString)* ;
+  <http://www.w3.org/2002/12/cal/ical#description> (xsd:string OR rdf:langString)* ;
+  <http://www.w3.org/2002/12/cal/ical#location> (xsd:string OR rdf:langString)* ;
+  <http://www.w3.org/2002/12/cal/ical#duration> (xsd:string OR rdf:langString)* ;
+  <http://www.w3.org/2002/12/cal/ical#dtstart> (xsd:date OR xsd:dateTime) ;
+  <http://www.w3.org/2002/12/cal/ical#dtend> (xsd:date OR xsd:dateTime)* ;
+  <http://www.w3.org/2002/12/cal/ical#recurrenceId> (xsd:date OR xsd:dateTime)* ;
+  cal:startTimezone xsd:string? ; cal:endTimezone xsd:string? ; cal:recurrenceIdTimezone xsd:string? ;
+  cal:recurrence xsd:string? ; cal:sources xsd:string?
+}
+<https://pondersource.com/ns/calendar/SchemaEvent> EXTRA a {
+  a [s:Event] ;
+  <https://schema.org/identifier> xsd:string? ;
+  <https://schema.org/name> (xsd:string OR rdf:langString)* ;
+  <https://schema.org/description> (xsd:string OR rdf:langString)* ;
+  <https://schema.org/location> (xsd:string OR rdf:langString)* ;
+  <https://schema.org/duration> (xsd:string OR rdf:langString)* ;
+  <https://schema.org/startDate> (xsd:date OR xsd:dateTime) ;
+  <https://schema.org/endDate> (xsd:date OR xsd:dateTime)* ;
+  <https://pondersource.com/ns/calendar/recurrenceId> (xsd:date OR xsd:dateTime)* ;
+  cal:startTimezone xsd:string? ; cal:endTimezone xsd:string? ; cal:recurrenceIdTimezone xsd:string? ;
+  cal:recurrence xsd:string? ; cal:sources xsd:string?
+}
+<https://pondersource.com/ns/calendar/SchemaHttpEvent> EXTRA a {
+  a [<http://schema.org/Event>] ;
+  <http://schema.org/identifier> xsd:string? ;
+  <http://schema.org/name> (xsd:string OR rdf:langString)* ;
+  <http://schema.org/description> (xsd:string OR rdf:langString)* ;
+  <http://schema.org/location> (xsd:string OR rdf:langString)* ;
+  <http://schema.org/duration> (xsd:string OR rdf:langString)* ;
+  <http://schema.org/startDate> (xsd:date OR xsd:dateTime) ;
+  <http://schema.org/endDate> (xsd:date OR xsd:dateTime)* ;
+  <https://pondersource.com/ns/calendar/recurrenceId> (xsd:date OR xsd:dateTime)* ;
+  cal:startTimezone xsd:string? ; cal:endTimezone xsd:string? ; cal:recurrenceIdTimezone xsd:string? ;
+  cal:recurrence xsd:string? ; cal:sources xsd:string?
+}

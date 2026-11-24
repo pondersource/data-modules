@@ -1,0 +1,20 @@
+name: Calendar schemas and format preservation
+on:
+  push:
+    paths: ['calendar/**', '.github/workflows/calendar.yml']
+  pull_request:
+    paths: ['calendar/**', '.github/workflows/calendar.yml']
+permissions:
+  contents: read
+jobs:
+  calendar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --prefix calendar/vanilla
+      - run: npm test --prefix calendar/vanilla
+      - run: node calendar/vanilla/build.mjs
+      - run: git diff --exit-code -- calendar/vanilla/schemas

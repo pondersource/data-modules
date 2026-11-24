@@ -1,0 +1,10 @@
+{
+  "name": "@pondersource/calendar",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "exports": "./src/index.js",
+  "scripts": {"test": "node --test test/*.test.js"},
+  "dependencies": {"ical.js": "2.2.1", "n3": "1.26.0"},
+  "devDependencies": {"ajv": "8.20.0", "@shexjs/parser": "1.0.0-alpha.33", "@shexjs/validator": "1.0.0-alpha.33", "@shexjs/neighborhood-rdfjs": "1.0.0-alpha.33"}
+}

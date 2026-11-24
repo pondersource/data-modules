@@ -1,9 +1,9 @@
 name: remoteStorage data modules
 on:
   push:
-    paths: ['remotestorage/**', 'contacts/src/**', 'bookmarks/**/src/**', 'chats/**/src/**', 'tasks/vanilla/src/**', 'utils/rdflib/src/**', '.github/workflows/rs-modules.yml']
+    paths: ['remotestorage/**', 'calendar/**', 'contacts/src/**', 'bookmarks/**/src/**', 'chats/**/src/**', 'tasks/vanilla/src/**', 'utils/rdflib/src/**', '.github/workflows/rs-modules.yml']
   pull_request:
-    paths: ['remotestorage/**', 'contacts/src/**', 'bookmarks/**/src/**', 'chats/**/src/**', 'tasks/vanilla/src/**', 'utils/rdflib/src/**', '.github/workflows/rs-modules.yml']
+    paths: ['remotestorage/**', 'calendar/**', 'contacts/src/**', 'bookmarks/**/src/**', 'chats/**/src/**', 'tasks/vanilla/src/**', 'utils/rdflib/src/**', '.github/workflows/rs-modules.yml']
 permissions:
   contents: read
 jobs:
