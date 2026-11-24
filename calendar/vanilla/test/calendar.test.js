@@ -198,3 +198,22 @@ test('native updates ignore stale caller provenance and retain freshly fetched u
  await api.update(id,{...old,title:'After'});
  assert.match(text,/Added after the caller read/);assert.equal((await api.get(id)).title,'After');
 });
+
+test('generated Atomic Classes and Properties satisfy the actual upstream meta-schema',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const fixture=JSON.parse(await readFile(new URL('./fixtures/atomic-meta.json',import.meta.url),'utf8'));
+ const native=new Map(fixture.resources.map(resource=>[resource['@id'],resource]));
+ for(const resource of atomicSchema) {
+   for(const cls of resource[ATOMIC+'properties/isA'])for(const required of native.get(cls)[ATOMIC+'properties/requires']) {
+     assert.ok(Object.hasOwn(resource,required),resource['@id']+' is missing '+required);
+     const datatype=native.get(required)[ATOMIC+'properties/datatype'],value=resource[required];
+     assert.equal(typeof value,'string',required);assert.ok(value.length>0,required);
+     if(datatype===ATOMIC+'datatypes/slug')assert.match(value,/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+     if(datatype===ATOMIC+'datatypes/atomicURL')assert.equal(new URL(value).protocol,'https:');
+   }
+   for(const key of ['isA','requires','recommends'])if(resource[ATOMIC+'properties/'+key]) {
+     assert.equal(native.get(ATOMIC+'properties/'+key)[ATOMIC+'properties/datatype'],ATOMIC+'datatypes/resourceArray');
+     for(const uri of resource[ATOMIC+'properties/'+key])assert.equal(new URL(uri).protocol,'https:');
+   }
+ }
+});

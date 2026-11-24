@@ -5,6 +5,7 @@
       "https://atomicdata.dev/classes/Class"
     ],
     "https://atomicdata.dev/properties/shortname": "calendar-event",
+    "https://atomicdata.dev/properties/description": "A calendar event with a stable UID and lexical start, preserving all-day, floating and timezone-aware values.",
     "https://atomicdata.dev/properties/requires": [
       "https://pondersource.com/ns/calendar/uid",
       "https://pondersource.com/ns/calendar/start"
@@ -25,6 +26,7 @@
       "https://atomicdata.dev/classes/Property"
     ],
     "https://atomicdata.dev/properties/shortname": "calendar-uid",
+    "https://atomicdata.dev/properties/description": "The stable iCalendar UID of this event.",
     "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/string"
   },
   {
@@ -33,6 +35,7 @@
       "https://atomicdata.dev/classes/Property"
     ],
     "https://atomicdata.dev/properties/shortname": "calendar-location",
+    "https://atomicdata.dev/properties/description": "The event location as text. Structured source locations remain in the source snapshots.",
     "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/string"
   },
   {
@@ -41,6 +44,7 @@
       "https://atomicdata.dev/classes/Property"
     ],
     "https://atomicdata.dev/properties/shortname": "calendar-duration",
+    "https://atomicdata.dev/properties/description": "The iCalendar duration when the event has no explicit end.",
     "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/string"
   },
   {
@@ -49,6 +53,7 @@
       "https://atomicdata.dev/classes/Property"
     ],
     "https://atomicdata.dev/properties/shortname": "calendar-start",
+    "https://atomicdata.dev/properties/description": "The lexical ISO date or date-time at which the event starts. All-day and floating times are retained.",
     "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/string"
   },
   {
@@ -57,6 +62,7 @@
       "https://atomicdata.dev/classes/Property"
     ],
     "https://atomicdata.dev/properties/shortname": "calendar-end",
+    "https://atomicdata.dev/properties/description": "The lexical end date or date-time. An all-day end date is exclusive.",
     "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/string"
   },
   {
@@ -65,6 +71,7 @@
       "https://atomicdata.dev/classes/Property"
     ],
     "https://atomicdata.dev/properties/shortname": "calendar-recurrence-id",
+    "https://atomicdata.dev/properties/description": "The original occurrence date or date-time identified by a recurrence override.",
     "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/string"
   },
   {
@@ -73,6 +80,7 @@
       "https://atomicdata.dev/classes/Property"
     ],
     "https://atomicdata.dev/properties/shortname": "calendar-start-timezone",
+    "https://atomicdata.dev/properties/description": "The timezone identifier for a floating local start date-time.",
     "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/string"
   },
   {
@@ -81,6 +89,7 @@
       "https://atomicdata.dev/classes/Property"
     ],
     "https://atomicdata.dev/properties/shortname": "calendar-end-timezone",
+    "https://atomicdata.dev/properties/description": "The timezone identifier for a floating local end date-time.",
     "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/string"
   },
   {
@@ -89,6 +98,7 @@
       "https://atomicdata.dev/classes/Property"
     ],
     "https://atomicdata.dev/properties/shortname": "calendar-recurrence-id-timezone",
+    "https://atomicdata.dev/properties/description": "The timezone identifier for a floating recurrence identifier.",
     "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/string"
   },
   {
@@ -97,6 +107,7 @@
       "https://atomicdata.dev/classes/Property"
     ],
     "https://atomicdata.dev/properties/shortname": "calendar-recurrence",
+    "https://atomicdata.dev/properties/description": "Recurrence rules, additional dates and excluded dates, retaining source extensions.",
     "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/json"
   },
   {
@@ -105,6 +116,7 @@
       "https://atomicdata.dev/classes/Property"
     ],
     "https://atomicdata.dev/properties/shortname": "calendar-sources",
+    "https://atomicdata.dev/properties/description": "Lossless source-format snapshots used to preserve unknown fields and native representations.",
     "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/json"
   }
 ]

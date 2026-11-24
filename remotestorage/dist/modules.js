@@ -19907,6 +19907,19 @@ ${fieldMappings.map((field) => `  <${field[vocabulary]}> ${["start", "end", "rec
   cal:recurrence xsd:string? ; cal:sources xsd:string?
 }`).join("\n") + "\n";
   var prop = ATOMIC + "properties/";
+  var descriptions = {
+    [CAL + "uid"]: "The stable iCalendar UID of this event.",
+    [CAL + "location"]: "The event location as text. Structured source locations remain in the source snapshots.",
+    [CAL + "duration"]: "The iCalendar duration when the event has no explicit end.",
+    [CAL + "start"]: "The lexical ISO date or date-time at which the event starts. All-day and floating times are retained.",
+    [CAL + "end"]: "The lexical end date or date-time. An all-day end date is exclusive.",
+    [CAL + "recurrenceId"]: "The original occurrence date or date-time identified by a recurrence override.",
+    [CAL + "startTimezone"]: "The timezone identifier for a floating local start date-time.",
+    [CAL + "endTimezone"]: "The timezone identifier for a floating local end date-time.",
+    [CAL + "recurrenceIdTimezone"]: "The timezone identifier for a floating recurrence identifier.",
+    [CAL + "recurrence"]: "Recurrence rules, additional dates and excluded dates, retaining source extensions.",
+    [SOURCE_KEY]: "Lossless source-format snapshots used to preserve unknown fields and native representations."
+  };
   var definitions = [
     ...fieldMappings.filter((field) => !field.atomic.startsWith(prop)).map((field) => [field.atomic, "string"]),
     ...["startTimezone", "endTimezone", "recurrenceIdTimezone"].map((name) => [CAL + name, "string"]),
@@ -19918,6 +19931,7 @@ ${fieldMappings.map((field) => `  <${field[vocabulary]}> ${["start", "end", "rec
       "@id": CAL + "Event",
       [prop + "isA"]: [ATOMIC + "classes/Class"],
       [prop + "shortname"]: "calendar-event",
+      [prop + "description"]: "A calendar event with a stable UID and lexical start, preserving all-day, floating and timezone-aware values.",
       [prop + "requires"]: [CAL + "uid", CAL + "start"],
       [prop + "recommends"]: fieldMappings.slice(1).map((field) => field.atomic)
     },
@@ -19925,6 +19939,7 @@ ${fieldMappings.map((field) => `  <${field[vocabulary]}> ${["start", "end", "rec
       "@id": id,
       [prop + "isA"]: [ATOMIC + "classes/Property"],
       [prop + "shortname"]: "calendar-" + id.slice(CAL.length).replace(/[A-Z]/g, (char) => "-" + char.toLowerCase()),
+      [prop + "description"]: descriptions[id],
       [prop + "datatype"]: ATOMIC + "datatypes/" + type
     }))
   ];

@@ -1,0 +1,51 @@
+{
+  "source": {
+    "repository": "https://github.com/ontola/atomic-server",
+    "commit": "30994948b5adadd765ecfcdccdf0aad14ef5be1a",
+    "path": "lib/defaults/default_base_models.json",
+    "sha256": "8ee16f423cabfaa1290ca3f8264a66b3b515a6c993c775204444c55aeff1c3f5",
+    "license": "MIT",
+    "note": "Only normative identifiers, required-property lists and datatype facts are reproduced."
+  },
+  "resources": [
+    {
+      "@id": "https://atomicdata.dev/properties/shortname",
+      "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/slug"
+    },
+    {
+      "@id": "https://atomicdata.dev/properties/description",
+      "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/markdown"
+    },
+    {
+      "@id": "https://atomicdata.dev/properties/isA",
+      "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/resourceArray"
+    },
+    {
+      "@id": "https://atomicdata.dev/properties/datatype",
+      "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/atomicURL"
+    },
+    {
+      "@id": "https://atomicdata.dev/properties/recommends",
+      "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/resourceArray"
+    },
+    {
+      "@id": "https://atomicdata.dev/properties/requires",
+      "https://atomicdata.dev/properties/datatype": "https://atomicdata.dev/datatypes/resourceArray"
+    },
+    {
+      "@id": "https://atomicdata.dev/classes/Property",
+      "https://atomicdata.dev/properties/requires": [
+        "https://atomicdata.dev/properties/shortname",
+        "https://atomicdata.dev/properties/datatype",
+        "https://atomicdata.dev/properties/description"
+      ]
+    },
+    {
+      "@id": "https://atomicdata.dev/classes/Class",
+      "https://atomicdata.dev/properties/requires": [
+        "https://atomicdata.dev/properties/shortname",
+        "https://atomicdata.dev/properties/description"
+      ]
+    }
+  ]
+}
