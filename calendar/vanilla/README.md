@@ -43,7 +43,9 @@ scoped fetch and exposes the same CRUD names on the original Pod documents.
 RDF fetch, including an LWS service. Updates and deletes require an ETag and use
 If-Match; creates use If-None-Match. Writes outside the selected root are refused.
 Use an event's fragment IRI when a document contains multiple events. Editing
-one preserves its sibling events; deletion refuses to delete a shared document.
+one preserves its sibling events. Deletion refuses a document that also contains
+other events, named graphs or independent resources. Reachable blank-node field
+values belonging to the event can be deleted with it.
 
 ## Dates and format preservation
 

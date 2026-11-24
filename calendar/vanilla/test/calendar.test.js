@@ -132,3 +132,24 @@ test('legacy HTTP schema.org Event vocabulary keeps its original IRIs',()=>{
  const value=fromRDF(text)[0];assert.equal(value.title,'Legacy');value.title='Edited legacy';
  const result=toRDF(value);assert.match(result,/<http:\/\/schema.org\/name> "Edited legacy"/);assert.equal(fromRDF(result)[0].uid,'https://pod.example/event');
 });
+
+test('deleting a native event never deletes independent RDF resources, graphs or orphan blank nodes',async()=>{
+ const {calendarRDF}=await import('../src/rdf.js');
+ const id='https://pod.example/calendar/shared.ttl#event';
+ const base=toRDF({uid:'delete',start:{value:'2026-11-24'}},{id});
+ for(const extra of [
+   '<https://pod.example/profile> <https://vendor.example/name> "Keep this profile" .',
+   '<https://pod.example/calendar/shared.ttl#event> <https://vendor.example/key> "Other graph" <https://graph.example/g> .',
+   '_:unrelated <https://vendor.example/key> "Orphan record" .'
+ ]) {
+   const calls=[];
+   const fetch=async(_url,options={})=>{calls.push(options.method||'GET');return new Response(base+'\n'+extra,{headers:{ETag:'"v1"'}});};
+   const api=calendarRDF({fetch,root:'https://pod.example/calendar/'});
+   await assert.rejects(api.delete(id),/contains other/);
+   assert.deepEqual(calls,['GET']);
+ }
+ const calls=[];
+ const fetch=async(_url,options={})=>{calls.push(options.method||'GET');return options.method?new Response(null,{status:204}):new Response(base+'\n<'+id+'> <https://vendor.example/field> _:value .\n_:value <https://vendor.example/text> "Owned field" .',{headers:{ETag:'"v1"'}});};
+ await calendarRDF({fetch,root:'https://pod.example/calendar/'}).delete(id);
+ assert.deepEqual(calls,['GET','DELETE']);
+});

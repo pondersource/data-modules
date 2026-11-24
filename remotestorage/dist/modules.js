@@ -20255,6 +20255,26 @@ ${fieldMappings.map((field) => `  <${field[vocabulary]}> ${["start", "end", "rec
           const current = await read(id);
           if (!current.etag) throw Error("Calendar server did not provide an ETag; deleting is blocked");
           if (current.events.length !== 1) throw Error("This document contains other events; deleting the document is blocked");
+          const source = current.event.sources.rdf;
+          const statements = new Parser({ format: "N-Quads", blankNodePrefix: "" }).parse(source.text);
+          const key = (term) => term.termType + ":" + term.value;
+          const graphKey = source.graph.type + ":" + source.graph.value;
+          const outgoing = /* @__PURE__ */ new Map();
+          for (const statement of statements) {
+            if (key(statement.graph) !== graphKey) throw Error("This document contains other graphs; deleting the document is blocked");
+            const subject = key(statement.subject);
+            if (!outgoing.has(subject)) outgoing.set(subject, []);
+            outgoing.get(subject).push(statement);
+          }
+          const pending = [source.subject.type + ":" + source.subject.value], owned2 = new Set(pending);
+          for (let index = 0; index < pending.length; index++) for (const statement of outgoing.get(pending[index]) || []) {
+            const object = key(statement.object);
+            if (statement.object.termType === "BlankNode" && !owned2.has(object)) {
+              owned2.add(object);
+              pending.push(object);
+            }
+          }
+          if ([...outgoing.keys()].some((subject) => !owned2.has(subject))) throw Error("This document contains other resources; deleting the document is blocked");
           await write(current.url, "DELETE", void 0, current.etag);
         }
       };
