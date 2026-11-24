@@ -140,7 +140,8 @@ test('deleting a native event never deletes independent RDF resources, graphs or
  for(const extra of [
    '<https://pod.example/profile> <https://vendor.example/name> "Keep this profile" .',
    '<https://pod.example/calendar/shared.ttl#event> <https://vendor.example/key> "Other graph" <https://graph.example/g> .',
-   '_:unrelated <https://vendor.example/key> "Orphan record" .'
+   '_:unrelated <https://vendor.example/key> "Orphan record" .',
+   '<https://other.example/resource> <'+CAL+'sources> "{}" .'
  ]) {
    const calls=[];
    const fetch=async(_url,options={})=>{calls.push(options.method||'GET');return new Response(base+'\n'+extra,{headers:{ETag:'"v1"'}});};
@@ -164,4 +165,36 @@ test('unknown nested temporal and recurrence fields survive format round trips w
  assert.equal(toJSON(value).start.timezone,undefined);
  const atomic=toAtomic(event(),{id:'https://atomic.example/nested'});atomic[CAL+'recurrence'].vendor='atomic-extension';
  value=fromICalendar(toICalendar(fromAtomic(atomic)))[0];assert.equal(toAtomic(value)[CAL+'recurrence'].vendor,'atomic-extension');
+});
+
+test('editing shared RDF and iCalendar documents retains sibling source formats without recursive growth',async()=>{
+ const {default:ICALJS}=await import('ical.js');
+ const first=fromJSON({uid:'first',title:'First',start:{value:'2026-11-24'},vendor:{owner:'first'}});
+ const second=fromJSON({uid:'second',title:'Second',start:{value:'2026-11-25'},vendor:{owner:'second'}});
+ let rdf=toRDF(first,{id:'https://pod.example/shared#first'})+'\n'+toRDF(second,{id:'https://pod.example/shared#second'});
+ const calendar=new ICALJS.Component(ICALJS.parse(toICalendar(first)));
+ calendar.addSubcomponent(new ICALJS.Component(ICALJS.parse(toICalendar(second))).getFirstSubcomponent('vevent'));
+ let ical=calendar.toString();const rdfSizes=[],icalSizes=[];
+ for(let index=0;index<8;index++) {
+   const uid=index%2?'second':'first';
+   const r=fromRDF(rdf).find(event=>event.uid===uid);r.title='Edited';rdf=toRDF(r);rdfSizes.push(rdf.length);
+   const i=fromICalendar(ical).find(event=>event.uid===uid);i.title='Edited';ical=toICalendar(i);icalSizes.push(ical.length);
+   for(const event of [...fromRDF(rdf),...fromICalendar(ical)])assert.deepEqual(toJSON(event).vendor,{owner:event.uid});
+ }
+ assert.equal(rdfSizes[4],rdfSizes[6]);assert.equal(rdfSizes[5],rdfSizes[7]);
+ assert.equal(icalSizes[4],icalSizes[6]);assert.equal(icalSizes[5],icalSizes[7]);
+});
+
+test('native updates ignore stale caller provenance and retain freshly fetched unrelated RDF',async()=>{
+ const {calendarRDF}=await import('../src/rdf.js');
+ const id='https://pod.example/calendar/current.ttl#event';
+ let text=toRDF({uid:'stale-source',title:'Before',start:{value:'2026-11-24'}},{id});
+ const fetch=async(_url,options={})=>{
+   if(options.method){text=options.body;assert.equal(options.headers['If-Match'],'"current"');return new Response(null,{status:204});}
+   return new Response(text,{headers:{ETag:'"current"'}});
+ };
+ const api=calendarRDF({fetch,root:'https://pod.example/calendar/'});const old=await api.get(id);
+ text+='\n<https://other.example/new> <https://vendor.example/field> "Added after the caller read" .';
+ await api.update(id,{...old,title:'After'});
+ assert.match(text,/Added after the caller read/);assert.equal((await api.get(id)).title,'After');
 });

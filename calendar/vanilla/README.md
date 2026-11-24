@@ -64,6 +64,10 @@ values belonging to the event can be deleted with it.
   named graphs. Only the selected literal is changed; other language variants
   remain. Structured places and complex recurrence graphs remain opaque;
   unsupported structured replacements fail instead of discarding them.
+- Shared RDF/iCalendar documents retain sibling source envelopes separately
+  from their bare source text. Cross-references between these sidecars are
+  flattened to avoid recursive growth. Native updates always use the freshly
+  fetched source snapshot, including when the caller supplies an older record.
 - Atomic temporal values are lexical strings plus timezone properties, rather
   than forcing floating/all-day times into timestamps. Recurrence and source
   envelopes use Atomic's native JSON datatype. Module validation enforces

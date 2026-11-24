@@ -48,7 +48,9 @@ return function calendarRDF({fetch,root}) {
     async update(id,changes) {
       const current=await read(id);
       if(!current.etag)throw Error('Calendar server did not provide an ETag; editing is blocked');
-      const next=validateEvent({...current.event,...structuredClone(changes)});
+      // Provenance belongs to the freshly fetched document. An older caller
+      // snapshot must not overwrite concurrently added, unrelated RDF.
+      const next=validateEvent({...current.event,...structuredClone(changes),sources:current.event.sources});
       await write(current.url,'PUT',toRDF(next),current.etag);return next;
     },
     async delete(id) {
@@ -56,6 +58,7 @@ return function calendarRDF({fetch,root}) {
       if(!current.etag)throw Error('Calendar server did not provide an ETag; deleting is blocked');
       if(current.events.length!==1)throw Error('This document contains other events; deleting the document is blocked');
       const source=current.event.sources.rdf;
+      if(source.envelopes?.length)throw Error('This document contains other resources; deleting the document is blocked');
       const statements=new Parser({format:'N-Quads',blankNodePrefix:''}).parse(source.text);
       const key=term=>term.termType+':'+term.value;
       const graphKey=source.graph.type+':'+source.graph.value;
