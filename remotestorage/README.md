@@ -10,6 +10,10 @@ rs.js, with remoteStorage, Dropbox, Google Drive and Solid choices.
 
 - `recipes.js` retains the recipe parser from this repository's Solid recipes
   module, including ingredient and instruction ordering.
+- Applications can load the open [Recipe SHACL profile](./shapes/recipe.ttl)
+  from `@pondersource/rs-data-modules/shapes/recipe.ttl` to validate native RDF.
+  It describes the supported recipe fields and linked instruction steps.
+  The module does not automatically validate or rewrite stored documents.
 - `movies.ts` and `movies-jsonld.ts` retain the movies/vanilla data parser,
   including watched state and watch actions.
 - `resource-pod.ts` adapts Solid Memo's MIT-licensed local RDF resource adapter.
@@ -56,6 +60,15 @@ with the pinned rs.js and widget builds. Their browser acceptance tests exercise
 real Solid authentication, private writes, fresh-browser reads and sign-out.
 The module tests also cover binary round trips, RDF updates, source import,
 recipe ordering, the legacy flashcards API and public copies.
+
+`assertRecipeBackend` in `test/recipe-backend-contract.js` runs the same recipe
+create, read, edit and delete checks on any provider using this module's JSON
+resource contract. For a live run, give it the connected writer's `rs.recipes`,
+a `flush()` that waits for provider sync, and a `reopen()` that returns
+`rs.recipes` from a fresh session connected to the same disposable account.
+The automated module test runs this contract against a JSON fixture.
+Run `npm --prefix recipes test` from the repository root to check the separate
+native RDF read path and SHACL validation.
 
 Google and Dropbox authorization use the app origin as their registered callback
 (without a trailing slash in the OAuth request). The shared connection adapter

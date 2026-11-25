@@ -4,6 +4,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.js",
+    "./shapes/recipe.ttl": "./shapes/recipe.ttl",
     "./domains": {
       "browser": "./dist/domains.browser.mjs",
       "default": "./dist/domains.mjs"

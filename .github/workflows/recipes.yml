@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'recipes/**'
+      - 'remotestorage/shapes/recipe.ttl'
+      - 'remotestorage/package.json'
       - '.github/workflows/recipes.yml'
 jobs:
   recipes:

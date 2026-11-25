@@ -1,0 +1,41 @@
+@prefix recipe: <https://pondersource.com/ns/recipes/> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+recipe:RecipeShape
+    a sh:NodeShape ;
+    sh:targetClass schema:Recipe ;
+    sh:property [
+        sh:path schema:name ;
+        sh:nodeKind sh:Literal ;
+        sh:minCount 1 ;
+        sh:pattern "\\S"
+    ] ;
+    sh:property [ sh:path schema:recipeIngredient ; sh:nodeKind sh:Literal ] ;
+    sh:property [ sh:path schema:recipeYield ; sh:nodeKind sh:Literal ] ;
+    sh:property [ sh:path schema:prepTime ; sh:nodeKind sh:Literal ] ;
+    sh:property [ sh:path schema:cookTime ; sh:nodeKind sh:Literal ] ;
+    sh:property [ sh:path schema:totalTime ; sh:nodeKind sh:Literal ] ;
+    sh:property [
+        sh:path schema:recipeInstructions ;
+        sh:or (
+            [ sh:nodeKind sh:Literal ]
+            [
+                sh:nodeKind sh:BlankNodeOrIRI ;
+                sh:node recipe:InstructionStepShape
+            ]
+        )
+    ] .
+
+recipe:InstructionStepShape
+    a sh:NodeShape ;
+    sh:property [
+        sh:path schema:text ;
+        sh:nodeKind sh:Literal ;
+        sh:minCount 1
+    ] ;
+    sh:property [
+        sh:path schema:position ;
+        sh:nodeKind sh:Literal ;
+        sh:pattern "^[0-9]+$"
+    ] .

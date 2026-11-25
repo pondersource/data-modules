@@ -18,6 +18,15 @@ loads a known Solid document. Both return entries with a backend-neutral
 literals is source order and may vary if a server reserializes the graph.
 Instruction steps with explicit positions take precedence over unnumbered steps.
 
+The [Recipe SHACL profile](../remotestorage/shapes/recipe.ttl) describes the
+RDF fields the remoteStorage Recipes module reads. It allows literal
+instructions and linked steps with literal text and an optional numeric
+position. Use it to check documents from an RDF backend. The shape is open,
+so extensions such as images and Soukai history can stay in the source graph.
+The profile flags malformed step positions and missing step text. The existing
+reader continues to treat malformed positions as unnumbered and skip steps
+without text. Validation is opt-in.
+
 The adapter is read-only. Umai's edit path also maintains Soukai history
 and linked resources. Direct RDF writes need to preserve that behavior.
 Cookbook discovery is handled by the app. This package is private during
