@@ -1,10 +1,16 @@
-# data-modules
+# Ponder Source Data Modules
 This project is [funded](https://nlnet.nl/project/SolidDataModules/) by <img src="https://nlnet.nl/logo/banner.svg" style="width: 5%; margin: 0 1% 0 1%;">
 / <img src="https://nlnet.nl/image/logos/NGI0Entrust_tag.svg" style="width: 5%; margin: 0 1% 0 1%;">
 
-Solid Data Modules are snippets of JavaScript code that handle the reading and writing of one specific
-type of data in the user's Solid pod, regardless of how the different data formats used by various Solid apps,
-and how they evolve.
+Ponder Source Data Modules brings together Solid Data Modules and
+remoteStorage modules so apps can work with the same kinds of data across
+storage providers. Modules handle domain data such as recipes, calendars and
+contacts, and preserve the source formats that existing apps use.
+
+The [shared npm package](./remotestorage) is `@pondersource/data-modules`.
+It connects to the storage providers supported by the app's rs.js distribution.
+Some modules also read or edit native Solid documents using the app's
+authenticated fetch.
 
 [Join our chat room on Matrix](https://app.gitter.im/index.html#/room/#solid-data-modules:gitter.im)
 
@@ -13,7 +19,7 @@ and how they evolve.
 [Our plan](https://hackmd.io/@michielbdejong/HyIMjmoxn)
 
 ## Data types covered
-Data types for which we will produce Solid Data Modules:
+Modules and work in progress:
 * [bookmarks](./bookmarks)
 * [chats](./chats)
 * [contacts](./contacts)
@@ -21,6 +27,7 @@ Data types for which we will produce Solid Data Modules:
 * [tasks](./tasks) (coming soon)
 
 * [recipes](./recipes) (Umai read adapter)
+* [calendar](./calendar/vanilla) (JSON, RDF, Atomic and iCalendar formats)
 
 ## Paradigms covered
 The "vanilla" version of each of these data modules will be usable in combination with just an

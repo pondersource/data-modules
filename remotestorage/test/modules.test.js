@@ -2,6 +2,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {Recipes,Movies,Flashcards,parseRecipes} from '../src/index.js';
+import {assertRecipeBackend} from './recipe-backend-contract.js';
 function client(data=new Map()) {
   return {
     declareType(){},
@@ -26,6 +27,20 @@ for(const module of [Recipes,Movies,Flashcards])test(module.name+' preserves RDF
   assert.equal((await api.fetch('https://unrelated.test/')).status,404);
   await api.fetch(url,{method:'DELETE'});assert.equal((await another.fetch(url)).status,404);
 });
+test('Recipes round trips through the provider-neutral JSON storage contract', async t => {
+  const data = new Map();
+  const open = () => {
+    const base = client(data);
+    return Recipes.builder({
+      ...base,
+      async storeObject(type, path, value) {
+        return base.storeObject(type, path, JSON.parse(JSON.stringify(value)));
+      },
+    }).exports;
+  };
+  await assertRecipeBackend(t, {writer: open(), reopen: open, async flush() {}});
+});
+
 test('recipes parsing retains ordered instructions, ingredients and duration',()=>{
  const [{recipe}]=parseRecipes('@prefix s:<https://schema.org/>. <#r> a s:Recipe;s:name "Soup";s:recipeIngredient "Water";s:totalTime "PT5M";s:recipeInstructions <#b>,<#a>. <#b> s:text "Serve";s:position 2. <#a> s:text "Heat";s:position 1.','https://pod.test/recipe');
  assert.deepEqual(recipe,{title:'Soup',ingredients:['Water'],instructions:['Heat','Serve'],totalTime:'PT5M'});

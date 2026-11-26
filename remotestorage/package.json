@@ -1,9 +1,10 @@
 {
-  "name": "@pondersource/rs-data-modules",
+  "name": "@pondersource/data-modules",
   "version": "0.1.0",
   "type": "module",
   "exports": {
     ".": "./src/index.js",
+    "./shapes/recipe.ttl": "./shapes/recipe.ttl",
     "./domains": {
       "browser": "./dist/domains.browser.mjs",
       "default": "./dist/domains.mjs"
