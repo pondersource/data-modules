@@ -8,7 +8,7 @@ import { parseRecipes, readRecipes } from '../index.js';
 
 const url = 'https://pod.example/cookbook/ramen';
 const fromModules = createRequire(new URL('../../remotestorage/package.json', import.meta.url));
-const shapePath = fromModules.resolve('@pondersource/rs-data-modules/shapes/recipe.ttl');
+const shapePath = fromModules.resolve('@pondersource/data-modules/shapes/recipe.ttl');
 const shapes = new Store(new Parser().parse(await readFile(shapePath, 'utf8')));
 
 async function validate(turtle, documentUrl = url) {

@@ -1,5 +1,5 @@
 {
-  "name": "@pondersource/rs-data-modules",
+  "name": "@pondersource/data-modules",
   "version": "0.1.0",
   "type": "module",
   "exports": {

@@ -1,17 +1,20 @@
-# remoteStorage data modules for the Solid app forks
+# Ponder Source Data Modules
 
 Umai uses `Recipes` (`recipes:rw`), Media Kraken uses `Movies` (`movies:rw`),
 and Solid Memo uses `Flashcards` (`flashcards:rw`). Each is an rs.js module.
 The app receives its module's API; it does not receive a BaseClient or call
 backend storage directly. `connectApp` connects the remoteStorage widget to
-rs.js, with remoteStorage, Dropbox, Google Drive and Solid choices.
+the app's rs.js distribution, which determines the available storage backends.
+
+When upgrading from a vendored `@pondersource/rs-data-modules` preview,
+update the dependency name and package imports to `@pondersource/data-modules`.
 
 ## Reused data logic
 
 - `recipes.js` retains the recipe parser from this repository's Solid recipes
   module, including ingredient and instruction ordering.
 - Applications can load the open [Recipe SHACL profile](./shapes/recipe.ttl)
-  from `@pondersource/rs-data-modules/shapes/recipe.ttl` to validate native RDF.
+  from `@pondersource/data-modules/shapes/recipe.ttl` to validate native RDF.
   It describes the supported recipe fields and linked instruction steps.
   The module does not automatically validate or rewrite stored documents.
 - `movies.ts` and `movies-jsonld.ts` retain the movies/vanilla data parser,
